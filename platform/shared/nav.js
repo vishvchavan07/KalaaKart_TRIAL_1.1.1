@@ -5,22 +5,22 @@
 
 const NAV_LINKS = [
   { section: 'Marketplace' },
-  { href: '/platform/index.html',              icon: '🏠', label: 'Home' },
-  { href: '/platform/listings/index.html',     icon: '📦', label: 'Browse & REUSE' },
-  { href: '/platform/listings/post.html',      icon: '➕', label: 'Sell / Rent Item' },
-  { href: '/platform/rentals/index.html',      icon: '📋', label: 'My Rentals' },
-  { href: '/platform/messages/index.html',     icon: '💬', label: 'Messages' },
+  { href: '/KalaaKart_TRIAL_1.1.1/platform/index.html',              icon: '🏠', label: 'Home' },
+  { href: '/KalaaKart_TRIAL_1.1.1/platform/listings/index.html',     icon: '📦', label: 'Browse & REUSE' },
+  { href: '/KalaaKart_TRIAL_1.1.1/platform/listings/post.html',      icon: '➕', label: 'Sell / Rent Item' },
+  { href: '/KalaaKart_TRIAL_1.1.1/platform/rentals/index.html',      icon: '📋', label: 'My Rentals' },
+  { href: '/KalaaKart_TRIAL_1.1.1/platform/messages/index.html',     icon: '💬', label: 'Messages' },
   { section: 'Community' },
-  { href: '/platform/profiles/index.html',     icon: '👤', label: 'Profiles' },
-  { href: '/platform/mentor/index.html',       icon: '🎓', label: 'Mentor Booking' },
-  { href: '/platform/clubs/index.html',        icon: '🏛️', label: 'Club Equipment' },
+  { href: '/KalaaKart_TRIAL_1.1.1/platform/profiles/index.html',     icon: '👤', label: 'Profiles' },
+  { href: '/KalaaKart_TRIAL_1.1.1/platform/mentor/index.html',       icon: '🎓', label: 'Mentor Booking' },
+  { href: '/KalaaKart_TRIAL_1.1.1/platform/clubs/index.html',        icon: '🏛️', label: 'Club Equipment' },
   { section: 'AI Features' },
-  { href: '/platform/recommendations/index.html', icon: '🎯', label: 'Recommendations' },
-  { href: '/platform/pricing/index.html',      icon: '💰', label: 'Smart Pricing' },
-  { href: '/platform/ai-search/index.html',    icon: '🔍', label: 'AI Search' },
-  { href: '/platform/ai-describe/index.html',  icon: '✍️',  label: 'Description AI' },
+  { href: '/KalaaKart_TRIAL_1.1.1/platform/recommendations/index.html', icon: '🎯', label: 'Recommendations' },
+  { href: '/KalaaKart_TRIAL_1.1.1/platform/pricing/index.html',      icon: '💰', label: 'Smart Pricing' },
+  { href: '/KalaaKart_TRIAL_1.1.1/platform/ai-search/index.html',    icon: '🔍', label: 'AI Search' },
+  { href: '/KalaaKart_TRIAL_1.1.1/platform/ai-describe/index.html',  icon: '✍️',  label: 'Description AI' },
   { section: 'Settings' },
-  { href: '/platform/admin/index.html',        icon: '⚙️',  label: 'Admin' },
+  { href: '/KalaaKart_TRIAL_1.1.1/platform/admin/index.html',        icon: '⚙️',  label: 'Admin' },
 ];
 
 function initNav() {
@@ -64,7 +64,7 @@ function initNav() {
   } else {
     html += `
       <div class="nav-user">
-        <a href="/platform/auth/login.html" class="btn btn-primary btn-sm btn-full">Sign in</a>
+        <a href="/KalaaKart_TRIAL_1.1.1/platform/auth/login.html" class="btn btn-primary btn-sm btn-full">Sign in</a>
       </div>`;
   }
 
@@ -113,12 +113,12 @@ function initNav() {
       <div style="margin-top:4px;font-size:.72rem">Student Rental &amp; Skills Marketplace · Phase 2</div>
     </div>
     <nav class="footer-links" aria-label="Footer links">
-      <a href="/platform/index.html">Home</a>
-      <a href="/platform/listings/index.html">Browse</a>
-      <a href="/platform/profiles/index.html">Profiles</a>
-      <a href="/platform/mentor/index.html">Mentors</a>
-      <a href="/platform/clubs/index.html">Clubs</a>
-      <a href="/platform/admin/index.html">Admin</a>
+      <a href="/KalaaKart_TRIAL_1.1.1/platform/index.html">Home</a>
+      <a href="/KalaaKart_TRIAL_1.1.1/platform/listings/index.html">Browse</a>
+      <a href="/KalaaKart_TRIAL_1.1.1/platform/profiles/index.html">Profiles</a>
+      <a href="/KalaaKart_TRIAL_1.1.1/platform/mentor/index.html">Mentors</a>
+      <a href="/KalaaKart_TRIAL_1.1.1/platform/clubs/index.html">Clubs</a>
+      <a href="/KalaaKart_TRIAL_1.1.1/platform/admin/index.html">Admin</a>
     </nav>
     <div class="footer-socials">
       <button class="footer-social-btn" title="GitHub" onclick="window.open('https://github.com','_blank')">𝗚</button>
@@ -181,7 +181,7 @@ function buildNavHTML(user, current) {
   } else {
     html += `
       <div class="nav-user">
-        <a href="/platform/auth/login.html" class="btn btn-primary btn-sm btn-full" style="text-align:center">Sign in</a>
+        <a href="/KalaaKart_TRIAL_1.1.1/platform/auth/login.html" class="btn btn-primary btn-sm btn-full" style="text-align:center">Sign in</a>
       </div>`;
   }
   return html;
@@ -196,7 +196,7 @@ function toggleSidebar() {
 
 function doLogout() {
   clearSession();
-  window.location.href = '/platform/auth/login.html';
+  window.location.href = '/KalaaKart_TRIAL_1.1.1/platform/auth/login.html';
 }
 
 function escHTML(str) {

@@ -55,12 +55,12 @@ function showToast(msg, type = 'info', duration = 3500) {
 
 function requireAuth() {
   const token = getToken();
-  if (!token) { window.location.href = '/platform/auth/login.html'; return false; }
+  if (!token) { window.location.href = '/KalaaKart_TRIAL_1.1.1/platform/auth/login.html'; return false; }
   return true;
 }
 
 // ── Redirect if already logged in ────────────────────────────────────────────
 
 function redirectIfLoggedIn() {
-  if (getToken()) window.location.href = '/platform/index.html';
+  if (getToken()) window.location.href = '/KalaaKart_TRIAL_1.1.1/platform/index.html';
 }

@@ -5,7 +5,7 @@
   <title>Browse & REUSE — KalaaKart</title>
   <meta name="description" content="Browse and REUSE lab gear, formals, books, and fest wear from students on KalaaKart."/>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
-  <link rel="stylesheet" href="/platform/shared/design.css"/>
+  <link rel="stylesheet" href="/KalaaKart_TRIAL_1.1.1/platform/shared/design.css"/>
   <style>
     .filters-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-sm);padding:20px;margin-bottom:24px}
     .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:18px}
@@ -91,7 +91,7 @@
       <!-- Results row -->
       <div class="sort-bar" style="justify-content:flex-start;margin-bottom:14px">
         <span id="results-count" style="font-size:.8rem;color:var(--text-muted)"></span>
-        <a href="/platform/listings/post.html" class="btn btn-secondary btn-sm" style="margin-left:auto">+ List an Item</a>
+        <a href="/KalaaKart_TRIAL_1.1.1/platform/listings/post.html" class="btn btn-secondary btn-sm" style="margin-left:auto">+ List an Item</a>
       </div>
 
       <div class="grid" id="listings-grid">
@@ -114,8 +114,8 @@
     </div>
   </div>
 
-  <script src="/platform/shared/api.js"></script>
-  <script src="/platform/shared/nav.js"></script>
+  <script src="/KalaaKart_TRIAL_1.1.1/platform/shared/api.js"></script>
+  <script src="/KalaaKart_TRIAL_1.1.1/platform/shared/nav.js"></script>
   <script>
     let activeListing = null;
     let activeType = 'all';
@@ -220,7 +220,7 @@
     }
 
     function openModal(l) {
-      if (!getToken()) { window.location.href='/platform/auth/login.html'; return; }
+      if (!getToken()) { window.location.href='/KalaaKart_TRIAL_1.1.1/platform/auth/login.html'; return; }
       activeListing = l;
       document.getElementById('modal-title').textContent = 'Request: ' + l.title;
       document.getElementById('m-err').textContent = '';

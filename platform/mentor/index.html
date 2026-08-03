@@ -5,7 +5,7 @@
   <title>Mentor Booking — KalaaKart</title>
   <meta name="description" content="Book 1-on-1 sessions with senior students on KalaaKart. Filter by subject, free-only, and more."/>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
-  <link rel="stylesheet" href="/platform/shared/design.css"/>
+  <link rel="stylesheet" href="/KalaaKart_TRIAL_1.1.1/platform/shared/design.css"/>
   <style>
     /* Booking modal */
     #book-modal{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:300;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(5px)}
@@ -62,7 +62,7 @@
           <span class="free-toggle-label">🎁 Free only</span>
         </label>
         <div style="margin-left:auto;display:flex;align-items:flex-end">
-          <a href="/platform/profiles/create.html" class="btn btn-secondary btn-sm">Become a Mentor →</a>
+          <a href="/KalaaKart_TRIAL_1.1.1/platform/profiles/create.html" class="btn btn-secondary btn-sm">Become a Mentor →</a>
         </div>
       </div>
 
@@ -97,8 +97,8 @@
     </div>
   </div>
 
-  <script src="/platform/shared/api.js"></script>
-  <script src="/platform/shared/nav.js"></script>
+  <script src="/KalaaKart_TRIAL_1.1.1/platform/shared/api.js"></script>
+  <script src="/KalaaKart_TRIAL_1.1.1/platform/shared/nav.js"></script>
   <script>
     initNav();
 
@@ -196,7 +196,7 @@
 
     // ── Booking modal ─────────────────────────────────────────────
     function openModal(session) {
-      if (!getToken()) { window.location.href = '/platform/auth/login.html'; return; }
+      if (!getToken()) { window.location.href = '/KalaaKart_TRIAL_1.1.1/platform/auth/login.html'; return; }
       pendingSession = session;
       document.getElementById('modal-mentor-name').textContent = `Book with ${session.mentor?.name||'Mentor'}`;
       document.getElementById('modal-subject').textContent = `${session.subject} · ${session.isFree ? 'Free' : '₹' + session.pricePerSession + '/session'} · ${session.duration}`;

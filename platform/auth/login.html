@@ -4,7 +4,7 @@
   <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>Sign In — KalaaKart</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
-  <link rel="stylesheet" href="/platform/shared/design.css"/>
+  <link rel="stylesheet" href="/KalaaKart_TRIAL_1.1.1/platform/shared/design.css"/>
   <style>
     body{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:24px}
     .auth-wrap{position:relative;z-index:1;width:100%;max-width:420px}
@@ -46,10 +46,10 @@
         </div>
         <button class="btn btn-primary btn-full" id="login-btn" type="submit">Sign In</button>
       </form>
-      <div class="auth-footer">Don't have an account? <a href="/platform/auth/register.html">Register</a></div>
+      <div class="auth-footer">Don't have an account? <a href="/KalaaKart_TRIAL_1.1.1/platform/auth/register.html">Register</a></div>
     </div>
   </div>
-  <script src="/platform/shared/api.js"></script>
+  <script src="/KalaaKart_TRIAL_1.1.1/platform/shared/api.js"></script>
   <script>
     redirectIfLoggedIn();
     document.getElementById('login-form').addEventListener('submit', async (e) => {
@@ -64,7 +64,7 @@
           password: document.getElementById('password').value,
         });
         setSession(d.token, d.user);
-        window.location.href = '/platform/index.html';
+        window.location.href = '/KalaaKart_TRIAL_1.1.1/platform/index.html';
       } catch(ex) {
         err.textContent = ex.message;
         btn.disabled = false; btn.textContent = 'Sign In';

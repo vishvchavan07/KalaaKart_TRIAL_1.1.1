@@ -4,7 +4,7 @@
   <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>Messages — KalaaKart</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
-  <link rel="stylesheet" href="/platform/shared/design.css"/>
+  <link rel="stylesheet" href="/KalaaKart_TRIAL_1.1.1/platform/shared/design.css"/>
   <style>
     .msg-layout{display:grid;grid-template-columns:280px 1fr;gap:0;height:calc(100vh - 120px);border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
     .convo-list{border-right:1px solid var(--border);overflow-y:auto;background:var(--surface)}
@@ -53,8 +53,8 @@
     </div>
   </div>
 
-  <script src="/platform/shared/api.js"></script>
-  <script src="/platform/shared/nav.js"></script>
+  <script src="/KalaaKart_TRIAL_1.1.1/platform/shared/api.js"></script>
+  <script src="/KalaaKart_TRIAL_1.1.1/platform/shared/nav.js"></script>
   <script>
     requireAuth();
     initNav();
@@ -79,7 +79,7 @@
 
     function renderConvos() {
       const list = document.getElementById('convo-list');
-      if (!rentals.length) { list.innerHTML='<div style="padding:16px;font-size:.82rem;color:var(--text-muted)">No active rentals yet. <a href="/platform/listings/index.html" style="color:var(--accent-light)">Browse listings</a></div>'; return; }
+      if (!rentals.length) { list.innerHTML='<div style="padding:16px;font-size:.82rem;color:var(--text-muted)">No active rentals yet. <a href="/KalaaKart_TRIAL_1.1.1/platform/listings/index.html" style="color:var(--accent-light)">Browse listings</a></div>'; return; }
       list.innerHTML = rentals.map(r => {
         const item = getListing(r.listingId);
         return `<div class="convo-item${activeRentalId===r.id?' active':''}" onclick="openThread('${r.id}')">

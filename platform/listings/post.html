@@ -4,7 +4,7 @@
   <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>Post a Listing — KalaaKart</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
-  <link rel="stylesheet" href="/platform/shared/design.css"/>
+  <link rel="stylesheet" href="/KalaaKart_TRIAL_1.1.1/platform/shared/design.css"/>
   <style>
     .post-grid{display:grid;grid-template-columns:1fr 340px;gap:24px;align-items:start}
     .pricing-hint{background:var(--accent-dim);border:1px solid rgba(132,90,255,.25);border-radius:var(--r-sm);padding:16px;font-size:.84rem;margin-top:16px}
@@ -94,8 +94,8 @@
     </div>
   </div>
 
-  <script src="/platform/shared/api.js"></script>
-  <script src="/platform/shared/nav.js"></script>
+  <script src="/KalaaKart_TRIAL_1.1.1/platform/shared/api.js"></script>
+  <script src="/KalaaKart_TRIAL_1.1.1/platform/shared/nav.js"></script>
   <script>
     requireAuth();
     initNav();
@@ -135,7 +135,7 @@
           tags       : document.getElementById('tags').value,
         });
         showToast('Listing posted! 🎉', 'success');
-        setTimeout(() => window.location.href='/platform/listings/index.html', 1200);
+        setTimeout(() => window.location.href='/KalaaKart_TRIAL_1.1.1/platform/listings/index.html', 1200);
       } catch(ex) { err.textContent=ex.message; btn.disabled=false; btn.textContent='Post Listing ✦'; }
     });
   </script>
