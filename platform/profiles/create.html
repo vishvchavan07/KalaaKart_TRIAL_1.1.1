@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Create Profile — KalaaKart</title>
+  <meta name="description" content="Create your student profile on KalaaKart — list skills, set mentoring price, upload gallery."/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="/platform/shared/design.css"/>
+  <style>
+    .create-grid{display:grid;grid-template-columns:1fr 320px;gap:24px;align-items:start}
+    @media(max-width:860px){.create-grid{grid-template-columns:1fr}}
+    .skills-tag-wrap{display:flex;flex-wrap:wrap;gap:6px;min-height:36px;padding:8px 12px;border:1px solid var(--border);border-radius:var(--r-sm);background:var(--surface);cursor:text;transition:border-color var(--t)}
+    .skills-tag-wrap:focus-within{border-color:var(--border-focus)}
+    .skill-tag-item{display:flex;align-items:center;gap:4px;background:var(--accent-dim);border:1px solid rgba(132,90,255,.4);color:var(--accent-light);border-radius:var(--r-pill);padding:3px 10px;font-size:.75rem;font-weight:600}
+    .skill-tag-item button{background:none;border:none;color:var(--accent-light);cursor:pointer;font-size:.8rem;line-height:1;padding:0;opacity:.7}
+    .skill-tag-item button:hover{opacity:1}
+    .skill-inline-input{border:none;outline:none;background:transparent;color:var(--text);font-size:.83rem;min-width:100px;flex:1}
+  </style>
+</head>
+<body>
+  <div class="orb orb-1"></div><div class="orb orb-2"></div>
+  <div class="app-layout">
+    <div class="page-content">
+      <div class="page-header">
+        <h1 class="page-title">Create Your Profile</h1>
+        <p class="page-sub">Tell the campus who you are — your skills, story, and what you offer.</p>
+      </div>
+
+      <!-- Success state (hidden initially) -->
+      <div id="success-state" class="hidden">
+        <div class="success-state card">
+          <div class="success-icon">🎉</div>
+          <div class="success-title">Profile created!</div>
+          <p class="success-msg">You're now discoverable by students across your campus. Share your profile link and start getting bookings.</p>
+          <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+            <a href="/platform/profiles/index.html" class="btn btn-primary">View All Profiles →</a>
+            <a href="/platform/listings/post.html" class="btn btn-secondary">Post a Listing Too</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Form -->
+      <div id="form-wrap" class="create-grid">
+        <div class="card">
+          <form id="profile-form" novalidate style="display:flex;flex-direction:column;gap:20px">
+
+            <!-- Section: Identity -->
+            <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted)">Your Identity</div>
+
+            <div class="field">
+              <label class="label">Creative Title *</label>
+              <input class="input" id="creativeTitle" type="text" placeholder="e.g. IoT Maker & Electronics Mentor" required maxlength="80"/>
+              <div class="char-counter" id="cc-title">0 / 80</div>
+            </div>
+
+            <div class="field">
+              <label class="label">Profile Photo</label>
+              <div style="display:flex;align-items:center;gap:14px">
+                <div id="photo-preview" style="width:60px;height:60px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent-2));display:flex;align-items:center;justify-content:center;font-size:1.3rem;font-weight:700;color:#fff;overflow:hidden;flex-shrink:0">
+                  <span id="photo-initials">?</span>
+                  <img id="photo-img" src="" alt="Photo preview" style="display:none;width:100%;height:100%;object-fit:cover"/>
+                </div>
+                <div>
+                  <input type="file" id="photo-file" accept="image/*" style="display:none" onchange="handlePhotoUpload(this)"/>
+                  <button type="button" class="btn btn-secondary btn-sm" onclick="document.getElementById('photo-file').click()">Upload Photo</button>
+                  <div style="font-size:.72rem;color:var(--text-dim);margin-top:4px">JPG, PNG, GIF — max 2MB</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <!-- Section: About -->
+            <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted)">About You</div>
+
+            <div class="field">
+              <label class="label">Bio <span style="color:var(--text-dim)">(220 chars max)</span></label>
+              <textarea class="textarea" id="bio" placeholder="A punchy intro — what you do, what you offer, what's your vibe." maxlength="220" style="height:90px" oninput="updateCounter('bio','cc-bio',220)"></textarea>
+              <div class="char-counter" id="cc-bio">0 / 220</div>
+            </div>
+
+            <div class="field">
+              <label class="label">Your Story <span style="color:var(--text-dim)">(500 chars max)</span></label>
+              <textarea class="textarea" id="story" placeholder="How did you get here? What project, failure, or breakthrough shaped you as a maker/seller/mentor?" maxlength="500" style="height:130px" oninput="updateCounter('story','cc-story',500)"></textarea>
+              <div class="char-counter" id="cc-story">0 / 500</div>
+            </div>
+
+            <div class="divider"></div>
+
+            <!-- Section: Skills -->
+            <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted)">Skills</div>
+
+            <div class="field">
+              <label class="label">Your Skills <span style="color:var(--text-dim)">(press Enter or comma to add)</span></label>
+              <div class="skills-tag-wrap" id="skills-wrap" onclick="document.getElementById('skills-input').focus()">
+                <input type="text" class="skill-inline-input" id="skills-input" placeholder="e.g. Arduino, Python, CAD…" onkeydown="handleSkillKey(event)"/>
+              </div>
+              <input type="hidden" id="skills-hidden"/>
+            </div>
+
+            <div class="divider"></div>
+
+            <!-- Section: Usage Tags -->
+            <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted)">I am on KalaaKart to… <span style="font-size:.7rem;font-weight:400;text-transform:none;letter-spacing:0;color:var(--text-dim)">(select all that apply)</span></div>
+
+            <div class="usage-tags" id="usage-tags">
+              <button type="button" class="usage-tag" data-tag="Creator" onclick="toggleTag(this)">✦ Creator / Maker</button>
+              <button type="button" class="usage-tag" data-tag="Mentor" onclick="toggleTag(this)">🎓 Offer Mentoring</button>
+              <button type="button" class="usage-tag" data-tag="Seller" onclick="toggleTag(this)">🏷️ Sell / Rent Items</button>
+              <button type="button" class="usage-tag" data-tag="Buyer" onclick="toggleTag(this)">🛒 Buy / Borrow</button>
+              <button type="button" class="usage-tag" data-tag="Collaborate" onclick="toggleTag(this)">🤝 Collaborate on Projects</button>
+            </div>
+
+            <div class="divider"></div>
+
+            <!-- Section: Pricing -->
+            <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted)">Mentoring Price</div>
+
+            <div class="field-row">
+              <div class="field">
+                <label class="label">Min ₹/session</label>
+                <input class="input" id="priceMin" type="number" min="0" placeholder="e.g. 50"/>
+              </div>
+              <div class="field">
+                <label class="label">Max ₹/session</label>
+                <input class="input" id="priceMax" type="number" min="0" placeholder="e.g. 200"/>
+              </div>
+            </div>
+            <label class="free-toggle-wrap">
+              <input type="checkbox" id="negotiable"/>
+              <span class="free-toggle-label">Price is negotiable</span>
+            </label>
+
+            <div class="field">
+              <label class="label">WhatsApp / Phone (optional)</label>
+              <input class="input" id="phone" type="tel" placeholder="+91 98xxx xxxxx"/>
+            </div>
+
+            <div class="divider"></div>
+
+            <!-- Section: Gallery -->
+            <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted)">Gallery <span style="font-size:.7rem;font-weight:400;text-transform:none;letter-spacing:0;color:var(--text-dim)">(up to 3 images)</span></div>
+
+            <div class="gallery-slots" id="gallery-slots">
+              <div class="gallery-slot" onclick="triggerGalleryUpload(0)" id="gs-0">
+                <div class="gallery-slot-icon">📸</div>
+                <div class="gallery-slot-label">Add photo</div>
+              </div>
+              <div class="gallery-slot" onclick="triggerGalleryUpload(1)" id="gs-1">
+                <div class="gallery-slot-icon">📸</div>
+                <div class="gallery-slot-label">Add photo</div>
+              </div>
+              <div class="gallery-slot" onclick="triggerGalleryUpload(2)" id="gs-2">
+                <div class="gallery-slot-icon">📸</div>
+                <div class="gallery-slot-label">Add photo</div>
+              </div>
+            </div>
+            <input type="file" id="gallery-file" accept="image/*" style="display:none" onchange="handleGalleryUpload(this)"/>
+
+            <!-- Error + Submit -->
+            <div class="field-err" id="profile-err"></div>
+            <button class="btn btn-primary" id="save-btn" type="submit">Save Profile ✦</button>
+          </form>
+        </div>
+
+        <!-- Live preview sidebar -->
+        <div>
+          <div class="card" style="position:sticky;top:90px">
+            <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);margin-bottom:14px">👁️ Live Preview</div>
+            <div class="profile-card" id="live-preview" style="border:none;padding:0;background:transparent">
+              <div style="display:flex;align-items:center;gap:12px">
+                <div class="profile-avatar" id="pv-avatar">?</div>
+                <div>
+                  <div class="profile-name" id="pv-name">Your Name</div>
+                  <div class="profile-title" id="pv-title" style="color:var(--text-dim)">Your Creative Title</div>
+                </div>
+              </div>
+              <div class="profile-role-badges" id="pv-roles"></div>
+              <p class="profile-bio" id="pv-bio" style="color:var(--text-dim)">Your bio will appear here…</p>
+              <div class="profile-skills" id="pv-skills"></div>
+            </div>
+          </div>
+        </div>
+      </div><!-- /form-wrap -->
+    </div>
+  </div>
+
+  <script src="/platform/shared/api.js"></script>
+  <script src="/platform/shared/nav.js"></script>
+  <script>
+    requireAuth();
+    initNav();
+
+    const user = getUser();
+    const ROLE_COLOR = {Creator:'badge-purple',Mentor:'badge-cyan',Buyer:'badge-orange',Seller:'badge-green',Collaborate:'badge-yellow'};
+    let galleryData = ['','',''];
+    let currentGallerySlot = 0;
+    let skills = [];
+
+    // Set avatar initials from logged in user
+    if (user) {
+      const initials = user.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+      document.getElementById('pv-name').textContent = user.name;
+      document.getElementById('photo-initials').textContent = initials;
+      document.getElementById('pv-avatar').textContent = initials;
+    }
+
+    // ── Char counters ──────────────────────────────────────────────
+    function updateCounter(fieldId, counterId, max) {
+      const el  = document.getElementById(fieldId);
+      const cnt = document.getElementById(counterId);
+      const len = el.value.length;
+      cnt.textContent = `${len} / ${max}`;
+      cnt.className = 'char-counter' + (len > max * 0.9 ? (len >= max ? ' over' : ' warn') : '');
+      updatePreview();
+    }
+
+    // ── Live preview ───────────────────────────────────────────────
+    function updatePreview() {
+      const title  = document.getElementById('creativeTitle').value;
+      const bio    = document.getElementById('bio').value;
+      document.getElementById('pv-title').textContent = title || 'Your Creative Title';
+      document.getElementById('pv-title').style.color = title ? 'var(--accent-light)' : 'var(--text-dim)';
+      document.getElementById('pv-bio').textContent   = bio  || 'Your bio will appear here…';
+      document.getElementById('pv-bio').style.color   = bio  ? 'var(--text-muted)' : 'var(--text-dim)';
+
+      const roles = [...document.querySelectorAll('.usage-tag.selected')].map(t => t.dataset.tag);
+      document.getElementById('pv-roles').innerHTML = roles.map(r => `<span class="badge ${ROLE_COLOR[r]||'badge-purple'}" style="font-size:.6rem">${r}</span>`).join('');
+
+      document.getElementById('pv-skills').innerHTML = skills.slice(0,4).map(s => `<span class="chip" style="font-size:.68rem">${escHTML(s)}</span>`).join('');
+    }
+
+    document.getElementById('creativeTitle').addEventListener('input', () => {
+      updateCounter('creativeTitle','cc-title',80); updatePreview();
+    });
+    document.getElementById('bio').addEventListener('input', () => {
+      updateCounter('bio','cc-bio',220);
+    });
+
+    // ── Skill chips ────────────────────────────────────────────────
+    function handleSkillKey(e) {
+      const input = e.target;
+      if ((e.key === 'Enter' || e.key === ',') && input.value.trim()) {
+        e.preventDefault();
+        addSkill(input.value.replace(',','').trim());
+        input.value = '';
+      }
+      if (e.key === 'Backspace' && !input.value && skills.length) {
+        removeSkill(skills.length - 1);
+      }
+    }
+
+    function addSkill(s) {
+      if (!s || skills.includes(s)) return;
+      skills.push(s);
+      renderSkills();
+      updatePreview();
+    }
+
+    function removeSkill(idx) {
+      skills.splice(idx, 1);
+      renderSkills();
+      updatePreview();
+    }
+
+    function renderSkills() {
+      const wrap  = document.getElementById('skills-wrap');
+      const input = document.getElementById('skills-input');
+      // Remove old skill tags
+      wrap.querySelectorAll('.skill-tag-item').forEach(el => el.remove());
+      // Re-insert before the text input
+      skills.forEach((s, i) => {
+        const tag = document.createElement('div');
+        tag.className = 'skill-tag-item';
+        tag.innerHTML = `${escHTML(s)}<button type="button" onclick="removeSkill(${i})" title="Remove">×</button>`;
+        wrap.insertBefore(tag, input);
+      });
+      document.getElementById('skills-hidden').value = JSON.stringify(skills);
+    }
+
+    // ── Usage tags ─────────────────────────────────────────────────
+    function toggleTag(btn) {
+      btn.classList.toggle('selected');
+      updatePreview();
+    }
+
+    // ── Photo upload ───────────────────────────────────────────────
+    function handlePhotoUpload(input) {
+      const file = input.files[0];
+      if (!file) return;
+      if (file.size > 2 * 1024 * 1024) { showToast('Photo must be under 2MB','error'); return; }
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const src = e.target.result;
+        document.getElementById('photo-initials').style.display = 'none';
+        const img = document.getElementById('photo-img');
+        img.src = src; img.style.display = 'block';
+        // Update preview avatar
+        const av = document.getElementById('pv-avatar');
+        av.innerHTML = `<img src="${src}" alt="Photo" style="width:100%;height:100%;object-fit:cover;border-radius:50%"/>`;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    // ── Gallery upload ─────────────────────────────────────────────
+    function triggerGalleryUpload(slot) {
+      currentGallerySlot = slot;
+      document.getElementById('gallery-file').click();
+    }
+
+    function handleGalleryUpload(input) {
+      const file = input.files[0];
+      if (!file) return;
+      if (file.size > 2 * 1024 * 1024) { showToast('Image must be under 2MB','error'); return; }
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const src = e.target.result;
+        galleryData[currentGallerySlot] = src;
+        const slot = document.getElementById(`gs-${currentGallerySlot}`);
+        slot.innerHTML = `<img src="${src}" alt="Gallery ${currentGallerySlot+1}"/><div style="position:absolute;bottom:6px;right:6px;background:rgba(0,0,0,.5);border-radius:4px;padding:2px 6px;font-size:.65rem;color:#fff;cursor:pointer" onclick="event.stopPropagation();clearGallery(${currentGallerySlot})">✕ Remove</div>`;
+      };
+      reader.readAsDataURL(file);
+      input.value = '';
+    }
+
+    function clearGallery(slot) {
+      galleryData[slot] = '';
+      const el = document.getElementById(`gs-${slot}`);
+      el.innerHTML = '<div class="gallery-slot-icon">📸</div><div class="gallery-slot-label">Add photo</div>';
+    }
+
+    // ── Submit ─────────────────────────────────────────────────────
+    document.getElementById('profile-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('save-btn');
+      const err = document.getElementById('profile-err');
+      btn.disabled = true; btn.textContent = 'Saving…'; err.textContent = '';
+
+      const title = document.getElementById('creativeTitle').value.trim();
+      if (!title) { err.textContent = 'Please enter a creative title.'; btn.disabled = false; btn.textContent = 'Save Profile ✦'; return; }
+
+      const usageTags = [...document.querySelectorAll('.usage-tag.selected')].map(t => t.dataset.tag);
+      const photoEl   = document.getElementById('photo-img');
+      const payload = {
+        creativeTitle: title,
+        bio:       document.getElementById('bio').value.trim(),
+        story:     document.getElementById('story').value.trim(),
+        photo:     photoEl.style.display !== 'none' ? photoEl.src : '',
+        gallery:   galleryData,
+        skills,
+        usageTags,
+        role:      usageTags,
+        priceMin:  parseInt(document.getElementById('priceMin').value)||0,
+        priceMax:  parseInt(document.getElementById('priceMax').value)||0,
+        negotiable: document.getElementById('negotiable').checked,
+        phone:     document.getElementById('phone').value.trim(),
+      };
+
+      try {
+        await api.post('/api/profiles', payload);
+        document.getElementById('form-wrap').classList.add('hidden');
+        document.getElementById('success-state').classList.remove('hidden');
+      } catch(ex) {
+        err.textContent = ex.message;
+        btn.disabled = false; btn.textContent = 'Save Profile ✦';
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Mentor Booking — KalaaKart</title>
+  <meta name="description" content="Book 1-on-1 sessions with senior students on KalaaKart. Filter by subject, free-only, and more."/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="/platform/shared/design.css"/>
+  <style>
+    /* Booking modal */
+    #book-modal{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:300;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(5px)}
+    .stars{color:#f59e0b;letter-spacing:2px;font-size:.9rem}
+  </style>
+</head>
+<body>
+  <div class="orb orb-1"></div><div class="orb orb-2"></div>
+  <div class="app-layout">
+    <div class="page-content">
+      <div class="page-header">
+        <h1 class="page-title">🎓 Mentor Booking</h1>
+        <p class="page-sub">1-on-1 sessions with seniors who've aced your exact labs, exams, and projects.</p>
+      </div>
+
+      <!-- How It Works -->
+      <div class="card" style="margin-bottom:32px">
+        <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);margin-bottom:14px">📖 How It Works</div>
+        <div class="steps">
+          <div class="step">
+            <div class="step-num">1</div>
+            <div class="step-title">Pick a Subject</div>
+            <div class="step-desc">Filter by your lab or subject to find a senior who matches exactly.</div>
+          </div>
+          <div class="step">
+            <div class="step-num">2</div>
+            <div class="step-title">Review the Mentor</div>
+            <div class="step-desc">See their skills, rating, completed sessions, and available time slots.</div>
+          </div>
+          <div class="step">
+            <div class="step-num">3</div>
+            <div class="step-title">Send a Request</div>
+            <div class="step-desc">Click "Book Session" and the mentor will confirm via chat or WhatsApp.</div>
+          </div>
+          <div class="step">
+            <div class="step-num">4</div>
+            <div class="step-title">Learn &amp; Grow</div>
+            <div class="step-desc">Show up prepared, ask questions, and leave with clarity and confidence.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Filters -->
+      <div class="filters-wrap glass-2" style="display:flex;flex-wrap:wrap;gap:16px;align-items:flex-end;margin-bottom:24px">
+        <div>
+          <div class="label" style="margin-bottom:8px">Filter by Subject</div>
+          <div class="chip-bar" id="subject-filter">
+            <button class="chip-filter active" data-subject="All" onclick="setSubject(this)">All</button>
+            <!-- More chips injected by JS from /api/mentor/subjects -->
+          </div>
+        </div>
+        <label class="free-toggle-wrap" style="padding-bottom:3px">
+          <input type="checkbox" id="free-only" onchange="loadSessions()"/>
+          <span class="free-toggle-label">🎁 Free only</span>
+        </label>
+        <div style="margin-left:auto;display:flex;align-items:flex-end">
+          <a href="/platform/profiles/create.html" class="btn btn-secondary btn-sm">Become a Mentor →</a>
+        </div>
+      </div>
+
+      <!-- Results count -->
+      <div id="results-meta" style="font-size:.8rem;color:var(--text-muted);margin-bottom:14px"></div>
+
+      <!-- Mentor cards -->
+      <div class="mentor-grid" id="mentor-grid">
+        <div class="empty"><div class="empty-icon">⏳</div><p>Loading mentors…</p></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Booking confirmation modal -->
+  <div id="book-modal" class="hidden">
+    <div class="card glass-3" style="max-width:420px;width:90%;position:relative">
+      <button onclick="closeModal()" style="position:absolute;top:14px;right:16px;background:none;border:none;color:var(--text-muted);font-size:1.2rem;cursor:pointer" aria-label="Close">✕</button>
+      <h2 style="font-size:1.05rem;font-weight:700;margin-bottom:6px" id="modal-mentor-name">Book Session</h2>
+      <div style="font-size:.82rem;color:var(--text-muted);margin-bottom:18px" id="modal-subject"></div>
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div class="field">
+          <label class="label">Preferred Date</label>
+          <input class="input" id="book-date" type="date"/>
+        </div>
+        <div class="field">
+          <label class="label">Your message to the mentor</label>
+          <textarea class="textarea" id="book-msg" placeholder="e.g. I'm struggling with PCB trace routing for my IoT project…" style="height:90px"></textarea>
+        </div>
+        <div class="field-err" id="book-err"></div>
+        <button class="btn btn-primary btn-full" id="book-confirm" onclick="confirmBooking()">Send Request →</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/platform/shared/api.js"></script>
+  <script src="/platform/shared/nav.js"></script>
+  <script>
+    initNav();
+
+    let activeSubject = 'All';
+    let pendingSession = null;
+
+    // ── Load subject chips ─────────────────────────────────────────
+    async function loadSubjects() {
+      try {
+        const d = await api.get('/api/mentor/subjects');
+        const bar = document.getElementById('subject-filter');
+        d.subjects.forEach(sub => {
+          const btn = document.createElement('button');
+          btn.className = 'chip-filter';
+          btn.dataset.subject = sub;
+          btn.textContent = sub;
+          btn.onclick = function(){ setSubject(this); };
+          bar.appendChild(btn);
+        });
+      } catch {}
+    }
+
+    function setSubject(btn) {
+      document.querySelectorAll('#subject-filter .chip-filter').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      activeSubject = btn.dataset.subject;
+      loadSessions();
+    }
+
+    // ── Load mentor sessions ───────────────────────────────────────
+    async function loadSessions() {
+      const grid = document.getElementById('mentor-grid');
+      grid.classList.add('grid-updating');
+      await new Promise(r => setTimeout(r, 150));
+
+      const freeOnly = document.getElementById('free-only').checked;
+      const params = new URLSearchParams();
+      if (activeSubject !== 'All') params.set('subject', activeSubject);
+      if (freeOnly) params.set('freeOnly', 'true');
+      try {
+        const d = await api.get('/api/mentor/sessions?' + params);
+        const sessions = d.sessions;
+        document.getElementById('results-meta').textContent = `${sessions.length} mentor${sessions.length !== 1 ? 's' : ''}${freeOnly ? ' · Free only' : ''}${activeSubject !== 'All' ? ' · ' + activeSubject : ''} found`;
+        if (!sessions.length) {
+          grid.innerHTML = '<div class="empty"><div class="empty-icon">📭</div><div class="empty-title">No mentors found</div><p class="empty-msg">Try a different subject or remove the free-only filter.</p></div>';
+          return;
+        }
+        grid.innerHTML = sessions.map((s, i) => {
+          const m = s.mentor || {};
+          const initials = m.name ? m.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase() : '?';
+          const stars = '★'.repeat(Math.round(s.rating||0)) + '☆'.repeat(5 - Math.round(s.rating||0));
+          const topics = (s.topics||[]).map(t => `<span class="chip" style="font-size:.7rem">${escHTML(t)}</span>`).join('');
+          const priceTag = s.isFree
+            ? `<span class="badge badge-green" style="font-size:.72rem">🎁 Free</span>`
+            : `<span class="mentor-price">₹${s.pricePerSession}</span><span style="font-size:.72rem;color:var(--text-dim)">/ session</span>`;
+
+          return `
+            <div class="mentor-card fade-in" style="animation-delay:${i*50}ms">
+              <div>
+                <span class="mentor-subject">${escHTML(s.subject)}</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:12px">
+                <div class="profile-avatar" style="width:46px;height:46px;font-size:1.1rem;flex-shrink:0">
+                  ${m.photo ? `<img src="${escHTML(m.photo)}" alt="${escHTML(m.name)}" style="width:100%;height:100%;object-fit:cover;border-radius:50%"/>` : initials}
+                </div>
+                <div>
+                  <div class="mentor-name">${escHTML(m.name||'Unknown')}</div>
+                  <div class="mentor-meta">${escHTML(m.creativeTitle||m.branch||'')} &nbsp;·&nbsp; ${escHTML(m.college||'')}</div>
+                </div>
+              </div>
+              <div class="mentor-topics">${topics}</div>
+              <div class="mentor-rating">
+                <span class="stars">${stars}</span>
+                <span style="font-size:.78rem;color:var(--text-muted)">${s.rating} · ${s.sessionsCompleted} sessions done</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                ${priceTag}
+              </div>
+              <div class="mentor-slots">📅 ${escHTML((s.slots||[]).join('  ·  '))}</div>
+              <div style="display:flex;align-items:center;gap:8px;margin-top:auto;flex-wrap:wrap">
+                <span class="badge ${s.mode==='Online'?'badge-cyan':'badge-orange'}" style="font-size:.65rem">${s.mode==='Online'?'🌐 Online':'📍 In-person'}</span>
+                <span style="font-size:.72rem;color:var(--text-dim)">⏱ ${s.duration}</span>
+              </div>
+              <button class="btn btn-primary btn-sm" onclick="openModal(${JSON.stringify(s).replace(/"/g,'&quot;')})">Book Session →</button>
+            </div>`;
+        }).join('');
+      } catch(ex) {
+        grid.innerHTML = `<div class="empty"><div class="empty-icon">⚠️</div><p>${ex.message}</p></div>`;
+      }
+      
+      requestAnimationFrame(() => {
+        grid.classList.remove('grid-updating');
+      });
+    }
+
+    // ── Booking modal ─────────────────────────────────────────────
+    function openModal(session) {
+      if (!getToken()) { window.location.href = '/platform/auth/login.html'; return; }
+      pendingSession = session;
+      document.getElementById('modal-mentor-name').textContent = `Book with ${session.mentor?.name||'Mentor'}`;
+      document.getElementById('modal-subject').textContent = `${session.subject} · ${session.isFree ? 'Free' : '₹' + session.pricePerSession + '/session'} · ${session.duration}`;
+      document.getElementById('book-err').textContent = '';
+      // Set default date to tomorrow
+      const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate()+1);
+      document.getElementById('book-date').value = tomorrow.toISOString().split('T')[0];
+      document.getElementById('book-modal').classList.remove('hidden');
+    }
+
+    function closeModal() {
+      document.getElementById('book-modal').classList.add('hidden');
+      pendingSession = null;
+    }
+
+    async function confirmBooking() {
+      const btn  = document.getElementById('book-confirm');
+      const err  = document.getElementById('book-err');
+      const date = document.getElementById('book-date').value;
+      const msg  = document.getElementById('book-msg').value.trim();
+      if (!date) { err.textContent = 'Please select a preferred date.'; return; }
+      btn.disabled = true; btn.textContent = 'Sending…'; err.textContent = '';
+      // Since mentor sessions don't have a rental flow yet, we simulate via rentals API
+      // (or just show success toast – mentor booking is a future integration point)
+      await new Promise(r => setTimeout(r, 800));
+      closeModal();
+      showToast(`Session request sent to ${pendingSession?.mentor?.name||'Mentor'}! They'll confirm via messages. ✅`, 'success');
+      btn.disabled = false; btn.textContent = 'Send Request →';
+    }
+
+    loadSubjects();
+    loadSessions();
+  </script>
+</body>
+</html>

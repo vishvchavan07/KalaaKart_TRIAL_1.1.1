@@ -1,0 +1,7 @@
+[
+  { "id": "m1", "rentalId": "r26", "senderId": "u1",  "body": "Hi Priya, can I pick up the camera on the 10th?", "ts": "2026-08-02T09:00:00Z" },
+  { "id": "m2", "rentalId": "r26", "senderId": "u2",  "body": "Sure! Come anytime after 4 PM. I'm in VJTI campus.", "ts": "2026-08-02T09:15:00Z" },
+  { "id": "m3", "rentalId": "r26", "senderId": "u1",  "body": "Perfect. Will bring the deposit amount.", "ts": "2026-08-02T09:20:00Z" },
+  { "id": "m4", "rentalId": "r27", "senderId": "u7",  "body": "Is the multimeter auto-ranging?", "ts": "2026-08-01T10:00:00Z" },
+  { "id": "m5", "rentalId": "r27", "senderId": "u5",  "body": "Yes, fully auto-ranging. Good for both AC and DC.", "ts": "2026-08-01T10:05:00Z" }
+]

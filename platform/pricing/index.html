@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Smart Pricing — KalaaKart</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="/platform/shared/design.css"/>
+  <style>
+    .pricing-result{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:32px;text-align:center;margin-top:24px}
+    .price-big{font-size:3.5rem;font-weight:900;background:linear-gradient(135deg,var(--accent-light),#e879f9);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin:12px 0}
+    .price-range{font-size:.9rem;color:var(--text-muted);margin-bottom:20px}
+    .conf-bar{height:8px;background:rgba(255,255,255,.08);border-radius:var(--r-pill);overflow:hidden;margin:16px 0}
+    .conf-fill{height:100%;border-radius:var(--r-pill);background:linear-gradient(90deg,var(--accent),#e879f9);transition:width .8s cubic-bezier(0.34,1.56,0.64,1)}
+    .category-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;margin-top:24px}
+    .cat-btn{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-sm);padding:14px;text-align:center;cursor:pointer;transition:all var(--t);font-size:.82rem;font-weight:600}
+    .cat-btn:hover,.cat-btn.active{background:var(--accent-dim);border-color:rgba(132,90,255,.4);color:var(--accent-light)}
+    .cat-icon{font-size:1.5rem;margin-bottom:6px}
+  </style>
+</head>
+<body>
+  <div class="orb orb-1"></div><div class="orb orb-2"></div>
+  <div class="app-layout">
+    <div class="page-content">
+      <div class="page-header">
+        <h1 class="page-title">💰 Smart Pricing</h1>
+        <p class="page-sub">Get a data-driven rental price suggestion before you post your item.</p>
+      </div>
+
+      <div class="card">
+        <div style="font-size:.85rem;font-weight:600;margin-bottom:14px;color:var(--text-muted)">Select category</div>
+        <div class="category-grid" id="cat-grid">
+          <!-- filled by JS -->
+        </div>
+        <div class="divider"></div>
+        <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+          <div class="field" style="flex:1;min-width:160px">
+            <label class="label">Condition</label>
+            <div class="select-wrap">
+              <select class="select" id="condition" onchange="fetchPricing()">
+                <option value="Good">Good — nearly new</option>
+                <option value="Fair">Fair — some wear</option>
+                <option value="Poor">Poor — functional but worn</option>
+              </select>
+            </div>
+          </div>
+          <button class="btn btn-primary" onclick="fetchPricing()">Get Suggestion</button>
+        </div>
+      </div>
+
+      <div class="pricing-result hidden" id="result-box">
+        <div style="font-size:.8rem;color:var(--text-muted)" id="result-cat"></div>
+        <div class="price-big" id="result-price"></div>
+        <div class="price-range" id="result-range"></div>
+        <div style="font-size:.78rem;color:var(--text-muted);text-align:left">Market confidence</div>
+        <div class="conf-bar"><div class="conf-fill" id="conf-fill" style="width:0%"></div></div>
+        <div style="font-size:.75rem;color:var(--text-dim);text-align:left" id="result-note"></div>
+        <a href="/platform/listings/post.html" class="btn btn-primary" style="margin-top:20px;display:inline-flex">Post This Item →</a>
+      </div>
+    </div>
+  </div>
+
+  <script src="/platform/shared/api.js"></script>
+  <script src="/platform/shared/nav.js"></script>
+  <script>
+    initNav();
+
+    const CATS = [
+      {icon:'⚡',name:'Electronics'},{icon:'📷',name:'Photography'},
+      {icon:'🔧',name:'Tools'},{icon:'📐',name:'Stationery'},
+      {icon:'🥼',name:'Lab Essentials'},{icon:'🌐',name:'Networking'},
+      {icon:'🔋',name:'Accessories'},{icon:'📏',name:'Civil Tools'},
+    ];
+    let selectedCat = null;
+
+    const grid = document.getElementById('cat-grid');
+    grid.innerHTML = CATS.map(c => `
+      <div class="cat-btn" onclick="selectCat('${c.name}',this)">
+        <div class="cat-icon">${c.icon}</div>
+        ${c.name}
+      </div>`).join('');
+
+    function selectCat(name, el) {
+      selectedCat = name;
+      document.querySelectorAll('.cat-btn').forEach(b=>b.classList.remove('active'));
+      el.classList.add('active');
+      fetchPricing();
+    }
+
+    async function fetchPricing() {
+      if (!selectedCat) { showToast('Select a category first','error'); return; }
+      const cond = document.getElementById('condition').value;
+      const box  = document.getElementById('result-box');
+      try {
+        const d = await api.get(`/api/pricing/suggest?category=${encodeURIComponent(selectedCat)}&condition=${cond}`);
+        box.classList.remove('hidden');
+        document.getElementById('result-cat').textContent   = `${selectedCat} · ${cond} condition · ${d.count} listings analysed`;
+        document.getElementById('result-price').textContent = d.count ? `₹${d.suggested}/day` : 'No data yet';
+        document.getElementById('result-range').textContent = d.count ? `Market range: ₹${d.min} – ₹${d.max} per day` : 'Be the first to list in this category!';
+        document.getElementById('result-note').textContent  = d.message;
+        const conf = Math.min(100, d.count * 20);
+        setTimeout(() => { document.getElementById('conf-fill').style.width = conf + '%'; }, 100);
+      } catch(ex) { showToast(ex.message,'error'); }
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Browse & REUSE — KalaaKart</title>
+  <meta name="description" content="Browse and REUSE lab gear, formals, books, and fest wear from students on KalaaKart."/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="/platform/shared/design.css"/>
+  <style>
+    .filters-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-sm);padding:20px;margin-bottom:24px}
+    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:18px}
+    .listing-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:22px;transition:all var(--t);cursor:pointer;display:flex;flex-direction:column;gap:10px}
+    .listing-card:hover{border-color:rgba(132,90,255,.3);transform:translateY(-3px);box-shadow:0 12px 32px rgba(0,0,0,.4)}
+    .listing-icon{font-size:2rem;margin-bottom:4px}
+    .listing-title{font-size:.97rem;font-weight:700;color:var(--text)}
+    .listing-desc{font-size:.8rem;color:var(--text-muted);line-height:1.5;flex:1}
+    .listing-footer{display:flex;align-items:center;justify-content:space-between;margin-top:6px;flex-wrap:wrap;gap:8px}
+    .listing-price{font-size:1rem;font-weight:800;color:var(--accent-light)}
+    .listing-college{font-size:.72rem;color:var(--text-dim)}
+    .rent-btn{padding:7px 16px;font-size:.78rem}
+    .avail-dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green);display:inline-block;margin-right:4px}
+    .unavail-dot{background:var(--red);box-shadow:0 0 6px var(--red)}
+    .listing-type-badge{font-size:.6rem;padding:2px 8px;margin-bottom:4px}
+  </style>
+</head>
+<body>
+  <div class="orb orb-1"></div><div class="orb orb-2"></div>
+  <div class="app-layout">
+    <div class="page-content">
+      <div class="page-header">
+        <h1 class="page-title">Browse &amp; REUSE</h1>
+        <p class="page-sub">Rent gear, buy secondhand, or find exactly what you need from students across colleges.</p>
+      </div>
+
+      <!-- Filters -->
+      <div class="filters-wrap glass-2">
+        <!-- Buy / Rent toggle -->
+        <div style="display:flex;align-items:center;gap:16px;margin-bottom:18px;flex-wrap:wrap">
+          <div class="toggle-group" id="type-toggle" role="group" aria-label="Listing type">
+            <button class="toggle-btn active" data-type="all" onclick="setType(this)">All</button>
+            <button class="toggle-btn" data-type="rent" onclick="setType(this)">🔄 Rent</button>
+            <button class="toggle-btn" data-type="buy" onclick="setType(this)">🛒 Buy / REUSE</button>
+          </div>
+          <label class="free-toggle-wrap">
+            <input type="checkbox" id="f-avail"/>
+            <span class="free-toggle-label">Available only</span>
+          </label>
+          <input class="input" id="f-q" type="text" placeholder="🔍 Keyword search…" style="min-width:180px;padding:9px 14px;margin-left:auto" onkeydown="if(event.key==='Enter')loadListings()"/>
+        </div>
+
+        <!-- Category filter chips -->
+        <div style="margin-bottom:14px">
+          <div class="label" style="margin-bottom:8px">Category</div>
+          <div class="chip-bar" id="cat-chips">
+            <button class="chip-filter active" data-cat="" onclick="setCat(this)">All</button>
+            <button class="chip-filter" data-cat="Electronics" onclick="setCat(this)">⚡ Electronics</button>
+            <button class="chip-filter" data-cat="Photography" onclick="setCat(this)">📷 Photography</button>
+            <button class="chip-filter" data-cat="Tools" onclick="setCat(this)">🔧 Tools</button>
+            <button class="chip-filter" data-cat="Stationery" onclick="setCat(this)">📐 Stationery</button>
+            <button class="chip-filter" data-cat="Lab Essentials" onclick="setCat(this)">🥼 Lab Essentials</button>
+            <button class="chip-filter" data-cat="Networking" onclick="setCat(this)">🌐 Networking</button>
+            <button class="chip-filter" data-cat="Accessories" onclick="setCat(this)">🔋 Accessories</button>
+            <button class="chip-filter" data-cat="Civil Tools" onclick="setCat(this)">📏 Civil Tools</button>
+            <button class="chip-filter" data-cat="Books" onclick="setCat(this)">📚 Books</button>
+            <button class="chip-filter" data-cat="Formals" onclick="setCat(this)">👔 Formals</button>
+            <button class="chip-filter" data-cat="Fest Wear" onclick="setCat(this)">🎭 Fest Wear</button>
+          </div>
+        </div>
+
+        <!-- Price + Sort row -->
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+          <div style="display:flex;align-items:center;gap:8px">
+            <label class="label" style="white-space:nowrap;margin:0">Max ₹/day</label>
+            <input class="input" id="f-max" type="number" placeholder="Any" style="width:100px;padding:8px 12px"/>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="loadListings()">Apply Filters</button>
+          <div class="sort-bar" style="margin:0;flex:1;justify-content:flex-end">
+            <span class="sort-label">Sort:</span>
+            <div class="select-wrap" style="min-width:160px">
+              <select class="select" id="f-sort" style="padding:8px 12px;font-size:.82rem" onchange="loadListings()">
+                <option value="default">Relevance</option>
+                <option value="price-asc">Price: Low → High</option>
+                <option value="price-desc">Price: High → Low</option>
+                <option value="available">Available first</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Results row -->
+      <div class="sort-bar" style="justify-content:flex-start;margin-bottom:14px">
+        <span id="results-count" style="font-size:.8rem;color:var(--text-muted)"></span>
+        <a href="/platform/listings/post.html" class="btn btn-secondary btn-sm" style="margin-left:auto">+ List an Item</a>
+      </div>
+
+      <div class="grid" id="listings-grid">
+        <div class="empty"><div class="empty-icon">⏳</div><p>Loading…</p></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Rent modal -->
+  <div id="rent-modal" class="hidden" style="position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:200;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px)">
+    <div class="card glass-3" style="max-width:400px;width:90%;position:relative">
+      <button onclick="closeModal()" style="position:absolute;top:14px;right:16px;background:none;border:none;color:var(--text-muted);font-size:1.2rem;cursor:pointer" aria-label="Close">✕</button>
+      <h2 style="font-size:1.05rem;font-weight:700;margin-bottom:18px" id="modal-title">Request Rental</h2>
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div class="field"><label class="label">Start Date</label><input class="input" id="m-start" type="date"/></div>
+        <div class="field"><label class="label">End Date</label><input class="input" id="m-end" type="date"/>
+          <div class="field-err" id="m-err"></div></div>
+        <button class="btn btn-primary btn-full" id="m-submit" onclick="submitRental()">Send Request</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/platform/shared/api.js"></script>
+  <script src="/platform/shared/nav.js"></script>
+  <script>
+    let activeListing = null;
+    let activeType = 'all';
+    let activeCat  = '';
+    const ICONS = {Electronics:'⚡',Photography:'📷',Tools:'🔧',Stationery:'📐','Lab Essentials':'🥼',Networking:'🌐',Accessories:'🔋','Civil Tools':'📏',Books:'📚',Formals:'👔','Fest Wear':'🎭',Default:'📦'};
+
+    initNav();
+
+    // ── Check URL param for ?type=buy (from homepage teaser) ──────
+    const urlType = new URLSearchParams(window.location.search).get('type');
+    if (urlType === 'buy') {
+      activeType = 'buy';
+      document.querySelectorAll('#type-toggle .toggle-btn').forEach(b => {
+        b.classList.toggle('active', b.dataset.type === 'buy');
+      });
+    }
+
+    function setType(btn) {
+      document.querySelectorAll('#type-toggle .toggle-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      activeType = btn.dataset.type;
+      loadListings();
+    }
+
+    function setCat(btn) {
+      document.querySelectorAll('#cat-chips .chip-filter').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      activeCat = btn.dataset.cat;
+      loadListings();
+    }
+
+    async function loadListings() {
+      const grid = document.getElementById('listings-grid');
+      // Smooth reflow out
+      grid.classList.add('grid-updating');
+      await new Promise(r => setTimeout(r, 150));
+      
+      const params = new URLSearchParams();
+      if (activeCat) params.set('category', activeCat);
+      const max = document.getElementById('f-max').value;
+      if (max) params.set('maxPrice', max);
+      if (document.getElementById('f-avail').checked) params.set('available', 'true');
+      const q = document.getElementById('f-q').value.trim();
+      if (q) params.set('q', q);
+      try {
+        const d = await api.get('/api/listings?' + params);
+        let listings = d.listings;
+
+        // Client-side type filter (backend doesn't know listingType yet)
+        if (activeType !== 'all') listings = listings.filter(l => l.listingType === activeType);
+
+        // Sort
+        const sort = document.getElementById('f-sort').value;
+        if (sort === 'price-asc')  listings = [...listings].sort((a,b) => a.pricePerDay - b.pricePerDay);
+        if (sort === 'price-desc') listings = [...listings].sort((a,b) => b.pricePerDay - a.pricePerDay);
+        if (sort === 'available')  listings = [...listings].sort((a,b) => (b.available?1:0)-(a.available?1:0));
+
+        const count = document.getElementById('results-count');
+        count.textContent = `${listings.length} item${listings.length!==1?'s':''} found`;
+
+        if (!listings.length) {
+          grid.innerHTML = '<div class="empty"><div class="empty-icon">📭</div><div class="empty-title">No listings found</div><p class="empty-msg">Try adjusting your filters.</p></div>';
+          return;
+        }
+        grid.innerHTML = listings.map((l,i) => {
+          const isBuy = l.listingType === 'buy';
+          const typeBadge = isBuy
+            ? `<span class="badge badge-orange listing-type-badge">🛒 Buy</span>`
+            : `<span class="badge badge-purple listing-type-badge">🔄 Rent</span>`;
+          const priceLabel = isBuy ? `₹${l.pricePerDay}` : `₹${l.pricePerDay}/day`;
+          return `
+            <div class="listing-card fade-in" style="animation-delay:${i*30}ms" onclick="openModal(${JSON.stringify(l).replace(/"/g,'&quot;')})">
+              <div>
+                ${typeBadge}
+                <div class="listing-icon">${ICONS[l.category]||ICONS.Default}</div>
+                <div>
+                  <div class="listing-title">${escHTML(l.title)}</div>
+                  <span class="${l.available?'badge badge-green':'badge badge-red'}" style="margin-top:4px;font-size:.65rem">
+                    <span class="${l.available?'avail-dot':'avail-dot unavail-dot'}"></span>
+                    ${l.available?'Available':'Rented'}
+                  </span>
+                </div>
+              </div>
+              <div class="listing-desc">${escHTML(l.description)}</div>
+              <div class="listing-footer">
+                <div>
+                  <div class="listing-price">${priceLabel}</div>
+                  <div class="listing-college">📍 ${escHTML(l.college)}</div>
+                </div>
+                ${l.available ? `<button class="btn btn-primary rent-btn" onclick="event.stopPropagation();openModal(${JSON.stringify(l).replace(/"/g,'&quot;')})">${isBuy ? 'Buy' : 'Rent'}</button>` : ''}
+              </div>
+            </div>`;
+        }).join('');
+      } catch(ex) {
+        grid.innerHTML = `<div class="empty"><div class="empty-icon">⚠️</div><p>${ex.message}</p></div>`;
+      }
+      
+      // Smooth reflow in
+      requestAnimationFrame(() => {
+        grid.classList.remove('grid-updating');
+      });
+    }
+
+    function openModal(l) {
+      if (!getToken()) { window.location.href='/platform/auth/login.html'; return; }
+      activeListing = l;
+      document.getElementById('modal-title').textContent = 'Request: ' + l.title;
+      document.getElementById('m-err').textContent = '';
+      document.getElementById('rent-modal').classList.remove('hidden');
+    }
+    function closeModal() { document.getElementById('rent-modal').classList.add('hidden'); activeListing=null; }
+
+    async function submitRental() {
+      const start = document.getElementById('m-start').value;
+      const end   = document.getElementById('m-end').value;
+      const err   = document.getElementById('m-err');
+      const btn   = document.getElementById('m-submit');
+      if (!start||!end) { err.textContent='Please select start and end dates.'; return; }
+      if (end<=start)   { err.textContent='End date must be after start date.'; return; }
+      btn.disabled=true; btn.textContent='Sending…';
+      try {
+        await api.post('/api/rentals', { listingId: activeListing.id, ownerId: activeListing.ownerId, startDate: start, endDate: end });
+        closeModal();
+        showToast(`Request sent for "${activeListing.title}"! ✅`, 'success');
+      } catch(ex) { err.textContent=ex.message; }
+      btn.disabled=false; btn.textContent='Send Request';
+    }
+
+    loadListings();
+  </script>
+</body>
+</html>

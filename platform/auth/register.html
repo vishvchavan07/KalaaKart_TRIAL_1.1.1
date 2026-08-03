@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Register — KalaaKart</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="/platform/shared/design.css"/>
+  <style>
+    body{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:24px}
+    .auth-wrap{position:relative;z-index:1;width:100%;max-width:480px}
+    .auth-logo{text-align:center;margin-bottom:28px}
+    .auth-logo-text{font-size:1.1rem;font-weight:800;color:var(--accent-light);letter-spacing:.04em}
+    .auth-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:32px;backdrop-filter:blur(24px)}
+    .auth-title{font-size:1.3rem;font-weight:800;margin-bottom:6px}
+    .auth-sub{font-size:.84rem;color:var(--text-muted);margin-bottom:24px}
+    .auth-form{display:flex;flex-direction:column;gap:16px}
+    .auth-footer{text-align:center;margin-top:20px;font-size:.82rem;color:var(--text-muted)}
+    .auth-footer a{color:var(--accent-light);font-weight:600}
+  </style>
+</head>
+<body>
+  <div class="orb orb-1"></div><div class="orb orb-2"></div>
+  <div class="auth-wrap">
+    <div class="auth-logo"><div class="auth-logo-text">● KalaaKart</div></div>
+    <div class="auth-card">
+      <h1 class="auth-title">Create your account</h1>
+      <p class="auth-sub">Join the student rental network.</p>
+      <form class="auth-form" id="reg-form" novalidate>
+        <div class="field-row">
+          <div class="field">
+            <label class="label">Full Name</label>
+            <input class="input" id="name" type="text" placeholder="Arjun Mehta" required/>
+          </div>
+          <div class="field">
+            <label class="label">College Email</label>
+            <input class="input" id="email" type="email" placeholder="you@college.edu" required/>
+          </div>
+        </div>
+        <div class="field">
+          <label class="label">College Name</label>
+          <input class="input" id="college" type="text" placeholder="e.g. KJSCE Mumbai" required/>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label class="label">Branch</label>
+            <div class="select-wrap">
+              <select class="select" id="branch" required>
+                <option value="">Choose branch…</option>
+                <option>Computer Engineering</option>
+                <option>Electronics Engineering</option>
+                <option>Electrical Engineering</option>
+                <option>IT</option>
+                <option>Mechanical Engineering</option>
+                <option>Civil Engineering</option>
+              </select>
+            </div>
+          </div>
+          <div class="field">
+            <label class="label">Semester</label>
+            <input class="input" id="semester" type="number" min="1" max="8" placeholder="1–8" required/>
+          </div>
+        </div>
+        <div class="field">
+          <label class="label">Semester Start Date</label>
+          <input class="input" id="semStart" type="date" required/>
+        </div>
+        <div class="field">
+          <label class="label">Password</label>
+          <input class="input" id="password" type="password" placeholder="Choose a password" required/>
+          <div class="field-err" id="reg-err"></div>
+        </div>
+        <button class="btn btn-primary btn-full" id="reg-btn" type="submit">Create Account</button>
+      </form>
+      <div class="auth-footer">Already have an account? <a href="/platform/auth/login.html">Sign in</a></div>
+    </div>
+  </div>
+  <script src="/platform/shared/api.js"></script>
+  <script>
+    redirectIfLoggedIn();
+    document.getElementById('reg-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('reg-btn');
+      const err = document.getElementById('reg-err');
+      btn.disabled = true; btn.textContent = 'Creating account…'; err.textContent = '';
+      try {
+        const d = await api.post('/api/auth/register', {
+          name: document.getElementById('name').value,
+          email: document.getElementById('email').value,
+          password: document.getElementById('password').value,
+          branch: document.getElementById('branch').value,
+          semester: document.getElementById('semester').value,
+          college: document.getElementById('college').value,
+          semesterStartDate: document.getElementById('semStart').value,
+        });
+        setSession(d.token, d.user);
+        window.location.href = '/platform/index.html';
+      } catch(ex) {
+        err.textContent = ex.message;
+        btn.disabled = false; btn.textContent = 'Create Account';
+      }
+    });
+  </script>
+</body>
+</html>

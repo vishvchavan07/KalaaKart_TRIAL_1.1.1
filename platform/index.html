@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>KalaaKart — Student Rental & Skills Marketplace</title>
+  <meta name="description" content="KalaaKart connects students to rent lab gear, book mentors, and buy/sell campus items — powered by AI recommendations."/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="/platform/shared/design.css"/>
+  <style>
+    body{background:var(--bg)}
+    /* Hero */
+    .hero-wrap{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:60px 20px 40px;position:relative;z-index:1}
+    .hero-pill{display:inline-flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--border);padding:6px 16px;border-radius:var(--r-pill);font-size:.78rem;font-weight:600;color:var(--accent-light);letter-spacing:.05em;text-transform:uppercase;margin-bottom:24px;backdrop-filter:blur(12px)}
+    .hero-dot{width:8px;height:8px;border-radius:50%;background:var(--accent);animation:pulse 2s ease-in-out infinite}
+    .hero-title{font-size:clamp(2.4rem,6vw,4.2rem);font-weight:900;line-height:1.08;margin-bottom:20px;background:linear-gradient(135deg,#fff 20%,var(--accent-light) 65%,#e879f9 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;max-width:720px}
+    .hero-sub{font-size:1rem;color:var(--text-muted);max-width:500px;margin:0 auto 36px;line-height:1.75}
+    .hero-actions{display:flex;gap:14px;flex-wrap:wrap;justify-content:center}
+    /* Sections */
+    .platform-content{position:relative;z-index:1;padding:0 20px 80px;max-width:1080px;margin:0 auto}
+    .section-header{margin-bottom:20px}
+    .section-title{font-size:1.25rem;font-weight:800;margin-bottom:4px}
+    .section-sub{font-size:.85rem;color:var(--text-muted)}
+    .section-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:8px}
+    .see-all{font-size:.8rem;font-weight:600;color:var(--accent-light);display:flex;align-items:center;gap:4px;transition:gap var(--t)}
+    .see-all:hover{gap:8px}
+    .section-divider{height:1px;background:var(--border);margin:56px 0}
+  </style>
+</head>
+<body>
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+
+  <!-- ── Hero ──────────────────────────────────────────────────────── -->
+  <div class="hero-wrap">
+    <div class="hero-pill fade-in" style="animation-delay:0.1s"><span class="hero-dot"></span> Phase 2 · AI Layers I–III Live</div>
+    <h1 class="hero-title fade-in" style="animation-delay:0.2s">Rent smarter.<br/>Learn faster.<br/>Earn as a student.</h1>
+    <p class="hero-sub fade-in" style="animation-delay:0.3s">KalaaKart connects students across colleges to share lab equipment, book mentors, and buy/sell campus essentials — all powered by AI recommendations.</p>
+    <div class="hero-actions fade-in" style="animation-delay:0.4s">
+      <a href="/platform/auth/register.html" class="btn btn-primary" style="font-size:1rem;padding:13px 28px">Get Started Free</a>
+      <a href="/platform/listings/index.html" class="btn btn-secondary" style="font-size:1rem;padding:13px 28px">Browse &amp; REUSE</a>
+    </div>
+
+    <!-- Live Stat Counters -->
+    <div class="hero-stats fade-in" id="hero-stats" aria-label="Platform statistics" style="animation-delay:0.5s">
+      <div class="hero-stat">
+        <span class="hero-stat-num" id="hs-listings" data-target="0">—</span>
+        <div class="hero-stat-label">Items Available</div>
+      </div>
+      <div class="hero-stat">
+        <span class="hero-stat-num" id="hs-users" data-target="0">—</span>
+        <div class="hero-stat-label">Students Registered</div>
+      </div>
+      <div class="hero-stat">
+        <span class="hero-stat-num" id="hs-rentals" data-target="0">—</span>
+        <div class="hero-stat-label">Rentals Completed</div>
+      </div>
+      <div class="hero-stat">
+        <span class="hero-stat-num" id="hs-mentors" data-target="0">—</span>
+        <div class="hero-stat-label">Mentor Sessions</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Main Sections ──────────────────────────────────────────────── -->
+  <div class="platform-content">
+
+    <!-- 3-Pillar Value Section -->
+    <div class="section-header" data-reveal>
+      <h2 class="section-title">Everything a student needs</h2>
+      <p class="section-sub">Three pillars, one platform.</p>
+    </div>
+    <div class="pillars" id="pillars" data-reveal>
+      <a href="/platform/listings/index.html" class="pillar" style="text-decoration:none;color:inherit">
+        <div class="pillar-icon">📦</div>
+        <div class="pillar-title">Skill Marketplace</div>
+        <div class="pillar-desc">Rent or buy lab gear, tools, cameras, books, and more from students at your college and nearby.</div>
+        <span class="pillar-tag">REUSE Section</span>
+      </a>
+      <a href="/platform/mentor/index.html" class="pillar" style="text-decoration:none;color:inherit">
+        <div class="pillar-icon">🎓</div>
+        <div class="pillar-title">Mentor Booking</div>
+        <div class="pillar-desc">Book 1-on-1 sessions with senior students who've aced the exact labs and subjects you're facing.</div>
+        <span class="pillar-tag">AI Layer I</span>
+      </a>
+      <a href="/platform/listings/index.html?type=buy" class="pillar" style="text-decoration:none;color:inherit">
+        <div class="pillar-icon">♻️</div>
+        <div class="pillar-title">REUSE Section</div>
+        <div class="pillar-desc">Formals for placements, fest wear, textbooks, lab coats — buy secondhand and save ₹₹₹ every semester.</div>
+        <span class="pillar-tag">Community</span>
+      </a>
+    </div>
+
+    <div class="section-divider"></div>
+
+    <!-- Student Work Showcase -->
+    <div class="section-row" data-reveal>
+      <div>
+        <h2 class="section-title">Student Work</h2>
+        <p class="section-sub">What students are renting &amp; listing right now</p>
+      </div>
+      <a href="/platform/listings/index.html" class="see-all">See all listings →</a>
+    </div>
+    <div class="work-strip" id="work-strip" data-reveal>
+      <div class="empty"><div class="empty-icon">⏳</div><p>Loading…</p></div>
+    </div>
+
+    <div class="section-divider"></div>
+
+    <!-- Creator Spotlight -->
+    <div class="section-header" data-reveal>
+      <h2 class="section-title">Creator Spotlight</h2>
+      <p class="section-sub">A featured student making an impact this week</p>
+    </div>
+    <div id="spotlight-wrap" data-reveal>
+      <div class="empty"><div class="empty-icon">⏳</div><p>Loading…</p></div>
+    </div>
+
+    <div class="section-divider"></div>
+
+    <!-- Featured Profiles -->
+    <div class="section-row" data-reveal>
+      <div>
+        <h2 class="section-title">Featured Profiles</h2>
+        <p class="section-sub">Creators, Mentors &amp; Sellers ready to connect</p>
+      </div>
+      <a href="/platform/profiles/index.html" class="see-all">See all profiles →</a>
+    </div>
+    <div class="profile-grid" id="profile-grid" data-reveal>
+      <div class="empty"><div class="empty-icon">⏳</div><p>Loading…</p></div>
+    </div>
+
+    <div class="section-divider"></div>
+
+    <!-- Campus Impact -->
+    <div class="section-header" data-reveal>
+      <h2 class="section-title">Campus Impact</h2>
+      <p class="section-sub">Why KalaaKart is different</p>
+    </div>
+    <div class="impact-grid" data-reveal>
+      <div class="impact-card">
+        <div class="impact-icon">🤝</div>
+        <div><div class="impact-title">Builds Connection</div><div class="impact-desc">Students across branches and colleges helping each other with gear and knowledge.</div></div>
+      </div>
+      <div class="impact-card">
+        <div class="impact-icon">💸</div>
+        <div><div class="impact-title">Makes Learning Affordable</div><div class="impact-desc">Rent an Arduino for ₹30/day instead of buying for ₹600. Smart for students on a budget.</div></div>
+      </div>
+      <div class="impact-card">
+        <div class="impact-icon">📈</div>
+        <div><div class="impact-title">Creates Student Income</div><div class="impact-desc">Turn your idle gear into passive income. Students earn hundreds every semester.</div></div>
+      </div>
+    </div>
+
+    <div class="section-divider"></div>
+
+    <!-- Mentor + REUSE Teaser Cards -->
+    <div class="section-header" data-reveal>
+      <h2 class="section-title">Explore more</h2>
+      <p class="section-sub">Ready to dive deeper?</p>
+    </div>
+    <div class="teaser-grid" data-reveal>
+      <a href="/platform/mentor/index.html" class="teaser-card">
+        <div class="teaser-icon">🎓</div>
+        <div class="teaser-title">Mentor Booking</div>
+        <div class="teaser-desc">1-on-1 sessions with seniors who've aced your exact labs, exams, and projects. Free and paid slots available.</div>
+        <div class="teaser-cta">Browse mentors <span>→</span></div>
+      </a>
+      <a href="/platform/listings/index.html" class="teaser-card">
+        <div class="teaser-icon">♻️</div>
+        <div class="teaser-title">REUSE Section</div>
+        <div class="teaser-desc">Formals for placements, fest wear, textbooks, lab coats — buy secondhand from verified students. Save big.</div>
+        <div class="teaser-cta">Start saving <span>→</span></div>
+      </a>
+      <a href="/platform/profiles/create.html" class="teaser-card">
+        <div class="teaser-icon">✨</div>
+        <div class="teaser-title">Create Your Profile</div>
+        <div class="teaser-desc">List your skills, set a mentoring price, upload your gallery, and start getting discovered by other students.</div>
+        <div class="teaser-cta">Build your profile <span>→</span></div>
+      </a>
+    </div>
+  </div>
+
+  <script src="/platform/shared/api.js"></script>
+  <script src="/platform/shared/nav.js"></script>
+  <script>
+    initNav();
+
+    const ICONS = {Electronics:'⚡',Photography:'📷',Tools:'🔧',Stationery:'📐','Lab Essentials':'🥼',Networking:'🌐',Accessories:'🔋','Civil Tools':'📏',Books:'📚',Formals:'👔','Fest Wear':'🎭',Default:'📦'};
+    const ROLE_COLOR = {Creator:'badge-purple',Mentor:'badge-cyan',Buyer:'badge-orange',Seller:'badge-green',Collaborate:'badge-yellow'};
+
+    // ── Animated counters on scroll ───────────────────────────────
+    function countUp(el, target, duration = 1200) {
+      const start = performance.now();
+      const run = (now) => {
+        const t = Math.min((now - start) / duration, 1);
+        const ease = t < 0.5 ? 2*t*t : -1+(4-2*t)*t;
+        el.textContent = Math.round(ease * target);
+        if (t < 1) requestAnimationFrame(run);
+        else el.textContent = target;
+      };
+      requestAnimationFrame(run);
+    }
+
+    async function loadStats() {
+      try {
+        const [sd, md] = await Promise.all([
+          api.get('/api/admin/stats'),
+          api.get('/api/mentor/sessions'),
+        ]);
+        const targets = {
+          'hs-listings': sd.availableListings,
+          'hs-users':    sd.totalUsers,
+          'hs-rentals':  sd.completedRentals,
+          'hs-mentors':  md.sessions.reduce((a,s) => a + s.sessionsCompleted, 0),
+        };
+
+        const obs = new IntersectionObserver((entries) => {
+          entries.forEach(en => {
+            if (en.isIntersecting) {
+              Object.entries(targets).forEach(([id, val]) => {
+                const el = document.getElementById(id);
+                if (el) countUp(el, val);
+              });
+              obs.disconnect();
+            }
+          });
+        }, { threshold: 0.3 });
+
+        const statsEl = document.getElementById('hero-stats');
+        if (statsEl) obs.observe(statsEl);
+        // Set raw values for immediate display if already visible
+        Object.entries(targets).forEach(([id, val]) => {
+          const el = document.getElementById(id);
+          if (el) el.dataset.target = val;
+        });
+      } catch {}
+    }
+
+    // ── Student Work Strip ────────────────────────────────────────
+    async function loadWorkStrip() {
+      try {
+        const d = await api.get('/api/listings?available=true');
+        const strip = document.getElementById('work-strip');
+        const featured = d.listings.filter(l => l.type === 'item').slice(0, 6);
+        if (!featured.length) { strip.innerHTML = '<div class="empty"><div class="empty-icon">📭</div><p>No listings yet.</p></div>'; return; }
+        strip.innerHTML = featured.map(l => `
+          <a href="/platform/listings/index.html" class="work-card fade-in">
+            <div class="work-thumb">${ICONS[l.category]||ICONS.Default}</div>
+            <div class="work-info">
+              <div class="work-title">${escHTML(l.title)}</div>
+              <div class="work-price">From ₹${l.pricePerDay}/day</div>
+              <div class="work-link">View Work <span>→</span></div>
+            </div>
+          </a>`).join('');
+      } catch {}
+    }
+
+    // ── Creator Spotlight ─────────────────────────────────────────
+    async function loadSpotlight() {
+      try {
+        const d = await api.get('/api/profiles?role=Mentor');
+        const wrap = document.getElementById('spotlight-wrap');
+        const p = d.profiles[0];
+        if (!p) { wrap.innerHTML = '<div class="empty"><div class="empty-icon">🔍</div><p>No spotlight yet.</p></div>'; return; }
+        const initials = p.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+        const roleBadges = (p.role||[]).map(r => `<span class="badge ${ROLE_COLOR[r]||'badge-purple'}">${r}</span>`).join('');
+        const skillChips = (p.skills||[]).slice(0,4).map(s => `<span class="chip">${escHTML(s)}</span>`).join('');
+        wrap.innerHTML = `
+          <div class="spotlight">
+            <div class="spotlight-avatar">${p.photo ? `<img src="${escHTML(p.photo)}" alt="${escHTML(p.name)}"/>` : initials}</div>
+            <div style="flex:1;min-width:200px">
+              <div class="spotlight-badge">✦ Creator Spotlight</div>
+              <div class="spotlight-name">${escHTML(p.name)}</div>
+              <div class="spotlight-title">${escHTML(p.creativeTitle||'')}</div>
+              <div style="display:flex;flex-wrap:wrap;gap:5px;margin:8px 0">${roleBadges}</div>
+              <p class="spotlight-bio">${escHTML(p.bio||'')}</p>
+              <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:14px">${skillChips}</div>
+              <a href="/platform/profiles/index.html" class="btn btn-primary btn-sm">View Profile →</a>
+            </div>
+          </div>`;
+      } catch {}
+    }
+
+    // ── Featured Profiles ─────────────────────────────────────────
+    async function loadProfiles() {
+      try {
+        const d = await api.get('/api/profiles');
+        const grid = document.getElementById('profile-grid');
+        const featured = d.profiles.slice(0, 4);
+        if (!featured.length) { grid.innerHTML = '<div class="empty"><div class="empty-icon">👤</div><p>No profiles yet.</p></div>'; return; }
+        grid.innerHTML = featured.map(p => {
+          const initials = p.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+          const roleBadges = (p.role||[]).slice(0,2).map(r => `<span class="badge ${ROLE_COLOR[r]||'badge-purple'}" style="font-size:.6rem">${r}</span>`).join('');
+          const skills = (p.skills||[]).slice(0,3).map(s => `<span class="chip" style="font-size:.68rem">${escHTML(s)}</span>`).join('');
+          return `
+            <a href="/platform/profiles/index.html" class="profile-card fade-in" style="text-decoration:none;color:inherit">
+              <div style="display:flex;align-items:center;gap:12px">
+                <div class="profile-avatar">${p.photo ? `<img src="${escHTML(p.photo)}" alt="${escHTML(p.name)}"/>` : initials}</div>
+                <div>
+                  <div class="profile-name">${escHTML(p.name)}</div>
+                  <div class="profile-title">${escHTML(p.creativeTitle||p.branch)}</div>
+                </div>
+              </div>
+              <div class="profile-role-badges">${roleBadges}</div>
+              <p class="profile-bio">${escHTML(p.bio||'')}</p>
+              <div class="profile-skills">${skills}</div>
+              ${p.priceMin ? `<div class="profile-price">From ₹${p.priceMin}/session</div>` : ''}
+            </a>`;
+        }).join('');
+      } catch {}
+    }
+
+    loadStats();
+    loadWorkStrip();
+    loadSpotlight();
+    loadProfiles();
+  </script>
+</body>
+</html>

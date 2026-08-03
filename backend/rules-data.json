@@ -1,0 +1,69 @@
+{
+  "labs": [
+    {
+      "subject": "Electronics Lab",
+      "branch": ["Computer Engineering", "Electronics Engineering", "Electrical Engineering", "IT"],
+      "semester": [3, 4],
+      "triggerWeekStart": 2,
+      "triggerWeekEnd": 6,
+      "items": ["Breadboard", "Arduino Uno", "Jumper Wires", "Multimeter", "Lab Coat"]
+    },
+    {
+      "subject": "IoT / Embedded Systems Lab",
+      "branch": ["Computer Engineering", "IT", "Electronics Engineering"],
+      "semester": [5, 6],
+      "triggerWeekStart": 3,
+      "triggerWeekEnd": 8,
+      "items": ["ESP32 Dev Board", "Raspberry Pi", "Breadboard", "Jumper Wires", "Sensor Kit"]
+    },
+    {
+      "subject": "Workshop Practice",
+      "branch": ["Mechanical Engineering", "Civil Engineering"],
+      "semester": [1, 2],
+      "triggerWeekStart": 1,
+      "triggerWeekEnd": 5,
+      "items": ["Lab Coat", "Safety Goggles", "Vernier Calipers"]
+    },
+    {
+      "subject": "Robotics Lab",
+      "branch": ["Mechanical Engineering", "Computer Engineering"],
+      "semester": [6, 7],
+      "triggerWeekStart": 2,
+      "triggerWeekEnd": 7,
+      "items": ["Arduino Uno", "Servo Motors", "Robotics Kit", "Multimeter"]
+    },
+    {
+      "subject": "Surveying Practical",
+      "branch": ["Civil Engineering"],
+      "semester": [3, 4],
+      "triggerWeekStart": 4,
+      "triggerWeekEnd": 9,
+      "items": ["Measuring Tape", "Surveying Instruments"]
+    }
+  ],
+  "examWindows": [
+    {
+      "name": "Mid-Semester Exams",
+      "start": "2026-09-15",
+      "end": "2026-09-25",
+      "leadDays": 14,
+      "items": ["Scientific Calculator", "Previous Year Question Papers", "Reference Notes"]
+    },
+    {
+      "name": "End-Semester Exams",
+      "start": "2026-11-20",
+      "end": "2026-12-05",
+      "leadDays": 14,
+      "items": ["Scientific Calculator", "Previous Year Question Papers", "Reference Notes"]
+    }
+  ],
+  "hackathonSeasons": [
+    {
+      "name": "Hackathon Season (SIH / GDG Solution Challenge)",
+      "start": "2026-08-15",
+      "end": "2026-10-15",
+      "leadDays": 14,
+      "items": ["DSLR Camera", "Tripod", "Raspberry Pi", "Power Bank", "Portable Wi-Fi Router"]
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "name": "kalaakart-rentals-backend",
+  "version": "1.0.0",
+  "description": "KalaaKart Smart Rentals rule-based recommendation API (Phase 2, AI Layer I)",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "test": "jest --testPathPattern=tests/"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.18.2"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "supertest": "^6.3.4"
+  }
+}

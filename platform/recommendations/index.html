@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Recommendations — KalaaKart</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="/platform/shared/design.css"/>
+  <link rel="stylesheet" href="/platform/recommendations/recs.css"/>
+</head>
+<body>
+  <div class="orb orb-1"></div><div class="orb orb-2"></div>
+  <div class="app-layout">
+    <div class="page-content">
+      <div class="page-header">
+        <h1 class="page-title">Recommendations</h1>
+        <p class="page-sub">Rule-based + peer insights — what you'll likely need this semester.</p>
+      </div>
+
+      <!-- Form -->
+      <div class="card" style="margin-bottom:24px">
+        <form id="rec-form" novalidate style="display:flex;flex-wrap:wrap;gap:16px;align-items:flex-end">
+          <div class="field" style="min-width:220px;flex:1">
+            <label class="label">Branch</label>
+            <div class="select-wrap"><select class="select" id="branch" required>
+              <option value="">Choose branch…</option>
+              <option>Computer Engineering</option><option>Electronics Engineering</option>
+              <option>Electrical Engineering</option><option>IT</option>
+              <option>Mechanical Engineering</option><option>Civil Engineering</option>
+            </select></div>
+          </div>
+          <div class="field" style="min-width:100px">
+            <label class="label">Semester</label>
+            <input class="input" id="semester" type="number" min="1" max="8" placeholder="1–8" required/>
+          </div>
+          <div class="field" style="min-width:160px">
+            <label class="label">Semester Start Date</label>
+            <input class="input" id="semStart" type="date" required/>
+          </div>
+          <button class="btn btn-primary" type="submit">Get Recommendations</button>
+        </form>
+      </div>
+
+      <!-- Rule-based results -->
+      <div id="rule-section" class="hidden">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px">
+          <h2 style="font-size:1rem;font-weight:700">🎯 Based on Your Semester</h2>
+          <span class="badge badge-purple" id="rule-count">0 suggestions</span>
+        </div>
+        <div id="rule-list" style="display:flex;flex-direction:column;gap:12px"></div>
+      </div>
+
+      <!-- Collaborative filtering results -->
+      <div id="collab-section" class="hidden" style="margin-top:28px">
+        <div class="divider"></div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin:20px 0 14px;flex-wrap:wrap;gap:10px">
+          <h2 style="font-size:1rem;font-weight:700">🤝 Students Like You Also Rented…</h2>
+          <span class="badge badge-cyan" id="collab-peer-count"></span>
+        </div>
+        <div id="collab-list" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px"></div>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="/platform/shared/api.js"></script>
+  <script src="/platform/shared/nav.js"></script>
+  <script>
+    initNav();
+
+    // Pre-fill from logged in user
+    const user = getUser();
+    if (user) {
+      document.getElementById('branch').value   = user.branch || '';
+      document.getElementById('semester').value = user.semester || '';
+      document.getElementById('semStart').value = user.semesterStartDate || '';
+    }
+
+    const TYPE_META = {
+      lab:{icon:'🔬',cls:'badge-cyan',label:'Lab'},
+      exam:{icon:'📝',cls:'badge-orange',label:'Exam'},
+      hackathon:{icon:'💡',cls:'badge-green',label:'Hackathon'},
+    };
+
+    document.getElementById('rec-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const branch   = document.getElementById('branch').value;
+      const semester = document.getElementById('semester').value;
+      const semStart = document.getElementById('semStart').value;
+      if (!branch||!semester||!semStart) { showToast('Fill all fields','error'); return; }
+
+      // Rule-based
+      try {
+        const d = await api.get(`/api/recommendations?branch=${encodeURIComponent(branch)}&semester=${semester}&semesterStartDate=${semStart}`);
+        const sec  = document.getElementById('rule-section');
+        const list = document.getElementById('rule-list');
+        document.getElementById('rule-count').textContent = `${d.recommendations.length} suggestion${d.recommendations.length!==1?'s':''}`;
+        sec.classList.remove('hidden');
+        if (!d.recommendations.length) {
+          list.innerHTML=`<div class="card card-sm" style="color:var(--text-muted);font-size:.85rem">${escHTML(d.text)}</div>`; 
+        } else {
+          list.innerHTML = d.recommendations.map((r,i) => {
+            const m = TYPE_META[r.type]||{icon:'📦',cls:'badge-purple',label:r.type};
+            return `<div class="card card-sm fade-in" style="animation-delay:${i*60}ms;display:flex;flex-direction:column;gap:10px">
+              <div><span class="badge ${m.cls}">${m.icon} ${m.label}</span></div>
+              <div style="font-weight:700;font-size:.95rem">${escHTML(r.title)}</div>
+              <div style="font-size:.83rem;color:var(--text-muted)">${escHTML(r.message)}</div>
+              <div style="display:flex;flex-wrap:wrap;gap:6px">${r.items.map(it=>`<span class="chip">${escHTML(it)}</span>`).join('')}</div>
+            </div>`;
+          }).join('');
+        }
+      } catch(ex) { showToast(ex.message,'error'); }
+
+      // Collaborative
+      try {
+        const d = await api.get(`/api/recommendations/collab?branch=${encodeURIComponent(document.getElementById('branch').value)}&semester=${document.getElementById('semester').value}`);
+        const sec  = document.getElementById('collab-section');
+        sec.classList.remove('hidden');
+        document.getElementById('collab-peer-count').textContent = `${d.peerCount} peers analysed`;
+        const cl = document.getElementById('collab-list');
+        if (!d.recommendations.length) {
+          cl.innerHTML=`<p style="font-size:.84rem;color:var(--text-muted)">${escHTML(d.message)}</p>`;
+        } else {
+          cl.innerHTML = d.recommendations.map(l=>`
+            <div class="card card-sm fade-in" style="gap:8px;display:flex;flex-direction:column">
+              <div style="font-size:.9rem;font-weight:700">${escHTML(l.title)}</div>
+              <div style="font-size:.75rem;color:var(--text-muted)">${escHTML(l.category)} · ₹${l.pricePerDay}/day</div>
+              <div style="font-size:.72rem;color:var(--green)">Rented ${l.rentCount}× by peers</div>
+              <a href="/platform/listings/index.html" class="btn btn-secondary btn-sm">View listings</a>
+            </div>`).join('');
+        }
+      } catch {}
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>AI Search — KalaaKart</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="/platform/shared/design.css"/>
+  <style>
+    .search-hero{text-align:center;padding:40px 0 32px}
+    .search-title{font-size:1.8rem;font-weight:900;margin-bottom:8px;background:linear-gradient(135deg,#fff,var(--accent-light));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+    .search-sub{font-size:.9rem;color:var(--text-muted);margin-bottom:28px}
+    .search-bar{display:flex;gap:12px;max-width:600px;margin:0 auto}
+    .search-bar .input{flex:1;font-size:1rem;padding:14px 18px}
+    .interpreted{background:var(--accent-dim);border:1px solid rgba(132,90,255,.25);border-radius:var(--r-sm);padding:12px 16px;font-size:.82rem;margin:20px 0;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+    .interpreted-label{color:var(--accent-light);font-weight:600}
+    .examples{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:16px}
+    .example-chip{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-pill);padding:7px 14px;font-size:.78rem;cursor:pointer;transition:all var(--t)}
+    .example-chip:hover{background:var(--surface-hi);border-color:rgba(132,90,255,.3)}
+    .results-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;margin-top:20px}
+    .result-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-sm);padding:20px;transition:all var(--t);display:flex;flex-direction:column;gap:8px}
+    .result-card:hover{border-color:rgba(132,90,255,.3);transform:translateY(-2px)}
+    .ai-tag{display:inline-flex;align-items:center;gap:4px;font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;padding:2px 8px;border-radius:var(--r-pill);background:rgba(56,189,248,.1);color:var(--cyan);border:1px solid var(--cyan-border)}
+    .wire-note{background:rgba(74,222,128,.06);border:1px solid var(--green-border);border-radius:var(--r-sm);padding:12px 14px;font-size:.78rem;color:var(--green);margin-top:24px}
+  </style>
+</head>
+<body>
+  <div class="orb orb-1"></div><div class="orb orb-2"></div>
+  <div class="app-layout">
+    <div class="page-content">
+      <div class="search-hero">
+        <div class="ai-tag" style="margin-bottom:16px;font-size:.72rem;padding:4px 12px">✦ AI Layer III — Natural Language Search</div>
+        <h1 class="search-title">Search in plain English</h1>
+        <p class="search-sub">Describe what you need and AI finds the right items.</p>
+        <div class="search-bar">
+          <input class="input" id="nl-input" type="text" placeholder="e.g. something to measure voltage…" onkeydown="if(event.key==='Enter')doSearch()"/>
+          <button class="btn btn-primary" onclick="doSearch()" style="padding:14px 22px">Search</button>
+        </div>
+        <div class="examples">
+          <span class="example-chip" onclick="setExample('something to measure voltage')">something to measure voltage</span>
+          <span class="example-chip" onclick="setExample('camera for hackathon presentation')">camera for hackathon presentation</span>
+          <span class="example-chip" onclick="setExample('microcontroller for IoT project')">microcontroller for IoT project</span>
+          <span class="example-chip" onclick="setExample('safety equipment for lab')">safety equipment for lab</span>
+          <span class="example-chip" onclick="setExample('internet access device')">internet access device</span>
+        </div>
+      </div>
+
+      <div id="interpreted-box" class="interpreted hidden">
+        <span class="interpreted-label">🤖 AI interpreted:</span>
+        <div id="interpreted-terms" style="display:flex;flex-wrap:wrap;gap:6px"></div>
+      </div>
+
+      <div id="results-grid" class="results-grid"></div>
+
+      <div class="wire-note">
+        🔌 <strong>Wire-up point:</strong> Replace the keyword synonym map in <code>backend/routes/search.js</code> with a Gemini API call to extract intent — the response format is identical, so the frontend doesn't change.
+      </div>
+    </div>
+  </div>
+
+  <script src="/platform/shared/api.js"></script>
+  <script src="/platform/shared/nav.js"></script>
+  <script>
+    initNav();
+    const ICONS = {Electronics:'⚡',Photography:'📷',Tools:'🔧',Stationery:'📐','Lab Essentials':'🥼',Networking:'🌐',Accessories:'🔋','Civil Tools':'📏',Default:'📦'};
+
+    function setExample(t) { document.getElementById('nl-input').value=t; doSearch(); }
+
+    async function doSearch() {
+      const q = document.getElementById('nl-input').value.trim();
+      if (!q) return;
+      const ibox  = document.getElementById('interpreted-box');
+      const igrid = document.getElementById('results-grid');
+      igrid.innerHTML='<div class="empty"><div class="empty-icon">🔍</div><p>Searching…</p></div>';
+      ibox.classList.add('hidden');
+      try {
+        const d = await api.get(`/api/search?q=${encodeURIComponent(q)}`);
+        // Show interpreted keywords
+        const terms = document.getElementById('interpreted-terms');
+        terms.innerHTML = d.interpreted.map(t=>`<span class="chip">${escHTML(t)}</span>`).join('');
+        ibox.classList.remove('hidden');
+
+        if (!d.results.length) {
+          igrid.innerHTML='<div class="empty"><div class="empty-icon">📭</div><div class="empty-title">No matches</div><p class="empty-msg">Try rephrasing your query.</p></div>';
+          return;
+        }
+        igrid.innerHTML = d.results.map((l,i)=>`
+          <div class="result-card fade-in" style="animation-delay:${i*50}ms">
+            <div style="font-size:1.5rem">${ICONS[l.category]||ICONS.Default}</div>
+            <div style="font-size:.92rem;font-weight:700">${escHTML(l.title)}</div>
+            <div style="font-size:.78rem;color:var(--text-muted)">${escHTML(l.category)} · ₹${l.pricePerDay}/day</div>
+            <div style="font-size:.78rem;color:var(--text-muted)">${escHTML(l.description.slice(0,80))}…</div>
+            <div style="margin-top:6px;display:flex;align-items:center;justify-content:space-between">
+              <span class="${l.available?'badge badge-green':'badge badge-red'}">${l.available?'Available':'Unavailable'}</span>
+              <span style="font-size:.72rem;color:var(--text-dim)">📍 ${escHTML(l.college)}</span>
+            </div>
+          </div>`).join('');
+      } catch(ex) { igrid.innerHTML=`<div class="empty"><div class="empty-icon">⚠️</div><p>${ex.message}</p></div>`; }
+    }
+  </script>
+</body>
+</html>

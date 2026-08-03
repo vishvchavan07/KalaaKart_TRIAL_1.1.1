@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Messages — KalaaKart</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="/platform/shared/design.css"/>
+  <style>
+    .msg-layout{display:grid;grid-template-columns:280px 1fr;gap:0;height:calc(100vh - 120px);border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+    .convo-list{border-right:1px solid var(--border);overflow-y:auto;background:var(--surface)}
+    .convo-item{padding:16px 18px;border-bottom:1px solid var(--border);cursor:pointer;transition:background var(--t)}
+    .convo-item:hover{background:var(--surface-hi)}
+    .convo-item.active{background:var(--accent-dim);border-right:3px solid var(--accent)}
+    .convo-title{font-size:.87rem;font-weight:600;margin-bottom:3px}
+    .convo-sub{font-size:.74rem;color:var(--text-muted)}
+    .thread-wrap{display:flex;flex-direction:column;height:100%}
+    .thread-header{padding:16px 20px;border-bottom:1px solid var(--border);background:var(--surface);font-size:.9rem;font-weight:700}
+    .thread-messages{flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:10px}
+    .msg-bubble{max-width:70%;padding:10px 14px;border-radius:12px;font-size:.84rem;line-height:1.5}
+    .msg-mine{align-self:flex-end;background:var(--accent-dim);border:1px solid rgba(132,90,255,.3);color:var(--text)}
+    .msg-other{align-self:flex-start;background:var(--surface-hi);border:1px solid var(--border)}
+    .msg-ts{font-size:.65rem;color:var(--text-dim);margin-top:3px}
+    .msg-sender{font-size:.7rem;font-weight:600;color:var(--accent-light);margin-bottom:3px}
+    .thread-input{padding:14px 16px;border-top:1px solid var(--border);display:flex;gap:10px}
+    .thread-input input{flex:1}
+    .no-chat{display:flex;align-items:center;justify-content:center;flex:1;color:var(--text-muted);font-size:.9rem}
+    @media(max-width:640px){.msg-layout{grid-template-columns:1fr}.convo-list{height:200px}}
+  </style>
+</head>
+<body>
+  <div class="orb orb-1"></div><div class="orb orb-2"></div>
+  <div class="app-layout">
+    <div class="page-content">
+      <div class="page-header">
+        <h1 class="page-title">Messages</h1>
+        <p class="page-sub">Chat with renters and lenders about your active rentals.</p>
+      </div>
+      <div class="msg-layout">
+        <div class="convo-list" id="convo-list">
+          <div style="padding:16px;font-size:.82rem;color:var(--text-muted)">Loading conversations…</div>
+        </div>
+        <div class="thread-wrap">
+          <div class="thread-header" id="thread-header">Select a conversation</div>
+          <div class="thread-messages" id="thread-messages">
+            <div class="no-chat">← Select a rental conversation to start messaging</div>
+          </div>
+          <div class="thread-input" id="thread-input" style="display:none">
+            <input class="input" id="msg-input" type="text" placeholder="Type a message…" onkeydown="if(event.key==='Enter')sendMessage()"/>
+            <button class="btn btn-primary btn-sm" onclick="sendMessage()">Send</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/platform/shared/api.js"></script>
+  <script src="/platform/shared/nav.js"></script>
+  <script>
+    requireAuth();
+    initNav();
+
+    const user = getUser();
+    let rentals = [], listings = [], activeRentalId = null, pollTimer = null;
+    const params = new URLSearchParams(window.location.search);
+    const preloadId = params.get('rentalId');
+
+    async function init() {
+      const [rd, ld] = await Promise.all([
+        api.get(`/api/rentals?userId=${user.id}`),
+        api.get('/api/listings'),
+      ]);
+      rentals  = rd.rentals.filter(r => r.status === 'active' || r.status === 'pending');
+      listings = ld.listings;
+      renderConvos();
+      if (preloadId) openThread(preloadId);
+    }
+
+    function getListing(id) { return listings.find(l=>l.id===id)||{title:'Unknown item'}; }
+
+    function renderConvos() {
+      const list = document.getElementById('convo-list');
+      if (!rentals.length) { list.innerHTML='<div style="padding:16px;font-size:.82rem;color:var(--text-muted)">No active rentals yet. <a href="/platform/listings/index.html" style="color:var(--accent-light)">Browse listings</a></div>'; return; }
+      list.innerHTML = rentals.map(r => {
+        const item = getListing(r.listingId);
+        return `<div class="convo-item${activeRentalId===r.id?' active':''}" onclick="openThread('${r.id}')">
+          <div class="convo-title">${escHTML(item.title)}</div>
+          <div class="convo-sub">${r.status} · ${r.startDate}–${r.endDate}</div>
+        </div>`;
+      }).join('');
+    }
+
+    function openThread(rentalId) {
+      activeRentalId = rentalId;
+      clearInterval(pollTimer);
+      document.getElementById('thread-input').style.display='flex';
+      renderConvos();
+      loadMessages();
+      pollTimer = setInterval(loadMessages, 3000);
+    }
+
+    async function loadMessages() {
+      if (!activeRentalId) return;
+      const r    = rentals.find(r=>r.id===activeRentalId);
+      const item = r ? getListing(r.listingId) : {title:'Chat'};
+      document.getElementById('thread-header').textContent = item.title;
+      try {
+        const d = await api.get(`/api/messages?rentalId=${activeRentalId}`);
+        const thread = document.getElementById('thread-messages');
+        if (!d.messages.length) { thread.innerHTML='<div class="no-chat">No messages yet. Say hi! 👋</div>'; return; }
+        const html = d.messages.map(m => {
+          const mine = m.senderId === user.id;
+          return `<div>
+            ${!mine?`<div class="msg-sender">Other</div>`:''}
+            <div class="msg-bubble ${mine?'msg-mine':'msg-other'}">${escHTML(m.body)}</div>
+            <div class="msg-ts" style="text-align:${mine?'right':'left'}">${new Date(m.ts).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</div>
+          </div>`;
+        }).join('');
+        if (thread.innerHTML !== html) {
+          thread.innerHTML = html;
+          thread.scrollTop = thread.scrollHeight;
+        }
+      } catch {}
+    }
+
+    async function sendMessage() {
+      const input = document.getElementById('msg-input');
+      const body  = input.value.trim();
+      if (!body || !activeRentalId) return;
+      input.value = '';
+      try {
+        await api.post('/api/messages', { rentalId: activeRentalId, body });
+        await loadMessages();
+      } catch(ex) { showToast(ex.message,'error'); }
+    }
+
+    init();
+  </script>
+</body>
+</html>

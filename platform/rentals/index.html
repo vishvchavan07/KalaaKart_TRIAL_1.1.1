@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>My Rentals — KalaaKart</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="/platform/shared/design.css"/>
+  <style>
+    .tabs{display:flex;gap:4px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-sm);padding:4px;width:fit-content;margin-bottom:24px}
+    .tab{padding:8px 20px;border-radius:6px;font-size:.85rem;font-weight:600;cursor:pointer;border:none;background:transparent;color:var(--text-muted);transition:all var(--t)}
+    .tab.active{background:var(--accent-dim);color:var(--accent-light)}
+    .rental-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-sm);padding:20px;display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;transition:all var(--t)}
+    .rental-card:hover{border-color:rgba(132,90,255,.2);background:var(--surface-hi)}
+    .rental-info{flex:1;min-width:200px}
+    .rental-title{font-size:.95rem;font-weight:700;margin-bottom:6px}
+    .rental-meta{font-size:.78rem;color:var(--text-muted)}
+    .rental-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+    .rental-list{display:flex;flex-direction:column;gap:12px}
+    .status-pending{color:var(--yellow)}
+    .status-active{color:var(--green)}
+    .status-completed{color:var(--text-muted)}
+    .status-cancelled,.status-rejected{color:var(--red)}
+  </style>
+</head>
+<body>
+  <div class="orb orb-1"></div><div class="orb orb-2"></div>
+  <div class="app-layout">
+    <div class="page-content">
+      <div class="page-header">
+        <h1 class="page-title">My Rentals</h1>
+        <p class="page-sub">Manage your incoming requests and outgoing borrowals.</p>
+      </div>
+      <div class="tabs">
+        <button class="tab active" onclick="switchTab('lending',this)">📤 Lending</button>
+        <button class="tab" onclick="switchTab('borrowing',this)">📥 Borrowing</button>
+      </div>
+      <div id="rental-list" class="rental-list">
+        <div class="empty"><div class="empty-icon">⏳</div><p>Loading…</p></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/platform/shared/api.js"></script>
+  <script src="/platform/shared/nav.js"></script>
+  <script>
+    requireAuth();
+    initNav();
+
+    let allRentals = [];
+    let listings   = [];
+    let activeTab  = 'lending';
+    const user     = getUser();
+
+    const STATUS_BADGE = {
+      pending:'badge badge-yellow',active:'badge badge-green',
+      completed:'badge badge-purple',cancelled:'badge badge-red',rejected:'badge badge-red'
+    };
+    const STATUS_ICONS = {pending:'⏳',active:'✅',completed:'🏁',cancelled:'❌',rejected:'🚫'};
+
+    async function load() {
+      try {
+        const [rd, ld] = await Promise.all([
+          api.get(`/api/rentals?userId=${user.id}`),
+          api.get('/api/listings'),
+        ]);
+        allRentals = rd.rentals;
+        listings   = ld.listings;
+        render();
+      } catch(ex) {
+        document.getElementById('rental-list').innerHTML = `<div class="empty"><div class="empty-icon">⚠️</div><p>${ex.message}</p></div>`;
+      }
+    }
+
+    function getListing(id) { return listings.find(l=>l.id===id)||{title:'Unknown item',pricePerDay:0}; }
+
+    function render() {
+      const list = document.getElementById('rental-list');
+      const filtered = activeTab === 'lending'
+        ? allRentals.filter(r => r.ownerId === user.id)
+        : allRentals.filter(r => r.renterId === user.id);
+
+      if (!filtered.length) {
+        list.innerHTML = `<div class="empty"><div class="empty-icon">📭</div><div class="empty-title">Nothing here yet</div><p class="empty-msg">${activeTab==='lending'?'Post an item to start receiving rental requests.':'Browse listings and send a request.'}</p></div>`;
+        return;
+      }
+
+      list.innerHTML = filtered.map(r => {
+        const item = getListing(r.listingId);
+        const actions = buildActions(r);
+        return `
+          <div class="rental-card fade-in" id="rc-${r.id}">
+            <div class="rental-info">
+              <div class="rental-title">${escHTML(item.title)}</div>
+              <div class="rental-meta">
+                ${activeTab==='lending'?`Requested by renter`:`Owner listed`} &nbsp;·&nbsp;
+                ${r.startDate} → ${r.endDate} &nbsp;·&nbsp;
+                ₹${item.pricePerDay}/day
+              </div>
+            </div>
+            <div class="rental-actions">
+              <span class="${STATUS_BADGE[r.status]||'badge'}">${STATUS_ICONS[r.status]||''} ${r.status}</span>
+              ${actions}
+            </div>
+          </div>`;
+      }).join('');
+    }
+
+    function buildActions(r) {
+      if (activeTab === 'lending' && r.status === 'pending') {
+        return `<button class="btn btn-success btn-sm" onclick="updateStatus('${r.id}','active')">Accept</button>
+                <button class="btn btn-danger btn-sm" onclick="updateStatus('${r.id}','rejected')">Reject</button>`;
+      }
+      if (activeTab === 'borrowing' && r.status === 'pending') {
+        return `<button class="btn btn-danger btn-sm" onclick="updateStatus('${r.id}','cancelled')">Cancel</button>`;
+      }
+      if (r.status === 'active') {
+        return `<button class="btn btn-secondary btn-sm" onclick="updateStatus('${r.id}','completed')">Mark Returned</button>
+                <a href="/platform/messages/index.html?rentalId=${r.id}" class="btn btn-secondary btn-sm">💬 Chat</a>`;
+      }
+      return '';
+    }
+
+    async function updateStatus(id, status) {
+      try {
+        await api.patch(`/api/rentals/${id}`, { status });
+        showToast(`Status updated to ${status}`, 'success');
+        await load();
+      } catch(ex) { showToast(ex.message, 'error'); }
+    }
+
+    function switchTab(tab, el) {
+      activeTab = tab;
+      document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+      el.classList.add('active');
+      render();
+    }
+
+    load();
+  </script>
+</body>
+</html>

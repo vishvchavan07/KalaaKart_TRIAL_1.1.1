@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Admin Dashboard — KalaaKart</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="/platform/shared/design.css"/>
+  <style>
+    .admin-tabs{display:flex;gap:4px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-sm);padding:4px;width:fit-content;margin-bottom:24px}
+    .admin-tab{padding:8px 20px;border-radius:6px;font-size:.84rem;font-weight:600;cursor:pointer;border:none;background:transparent;color:var(--text-muted);transition:all var(--t)}
+    .admin-tab.active{background:var(--accent-dim);color:var(--accent-light)}
+    code{font-size:.75rem;background:rgba(255,255,255,.07);border-radius:4px;padding:1px 5px;color:var(--accent-light)}
+  </style>
+</head>
+<body>
+  <div class="orb orb-1"></div><div class="orb orb-2"></div>
+  <div class="app-layout">
+    <div class="page-content">
+      <div class="page-header">
+        <h1 class="page-title">⚙️ Admin Dashboard</h1>
+        <p class="page-sub">Platform health at a glance. Manage listings and users.</p>
+      </div>
+
+      <!-- Stats row -->
+      <div class="stat-grid" id="stats-grid">
+        <div class="stat-card"><div class="stat-value">—</div><div class="stat-label">Total Listings</div></div>
+        <div class="stat-card"><div class="stat-value">—</div><div class="stat-label">Available Now</div></div>
+        <div class="stat-card"><div class="stat-value">—</div><div class="stat-label">Total Users</div></div>
+        <div class="stat-card"><div class="stat-value">—</div><div class="stat-label">Active Rentals</div></div>
+        <div class="stat-card"><div class="stat-value">—</div><div class="stat-label">Pending Requests</div></div>
+        <div class="stat-card"><div class="stat-value">—</div><div class="stat-label">Flagged Items</div></div>
+      </div>
+
+      <div class="admin-tabs">
+        <button class="admin-tab active" onclick="showTab('listings',this)">📦 Listings</button>
+        <button class="admin-tab" onclick="showTab('users',this)">👥 Users</button>
+      </div>
+
+      <!-- Listings table -->
+      <div id="tab-listings">
+        <div class="table-wrap">
+          <table id="listings-table">
+            <thead><tr><th>Title</th><th>Category</th><th>Price/day</th><th>Owner</th><th>Status</th><th>Action</th></tr></thead>
+            <tbody id="listings-body"><tr><td colspan="6" style="text-align:center;padding:24px;color:var(--text-muted)">Loading…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Users table -->
+      <div id="tab-users" class="hidden">
+        <div class="table-wrap">
+          <table id="users-table">
+            <thead><tr><th>Name</th><th>Email</th><th>Branch</th><th>Sem</th><th>College</th><th>Status</th><th>Action</th></tr></thead>
+            <tbody id="users-body"><tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text-muted)">Loading…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/platform/shared/api.js"></script>
+  <script src="/platform/shared/nav.js"></script>
+  <script>
+    initNav();
+
+    async function loadStats() {
+      try {
+        const d = await api.get('/api/admin/stats');
+        const vals = [d.totalListings,d.availableListings,d.totalUsers,d.activeRentals,d.pendingRentals,d.flaggedListings];
+        document.querySelectorAll('#stats-grid .stat-value').forEach((el,i) => el.textContent = vals[i]);
+      } catch {}
+    }
+
+    async function loadListings() {
+      try {
+        const d = await api.get('/api/admin/listings');
+        const body = document.getElementById('listings-body');
+        body.innerHTML = d.listings.filter(l=>l.type==='item').map(l => `
+          <tr>
+            <td style="font-weight:600">${escHTML(l.title)}</td>
+            <td>${escHTML(l.category)}</td>
+            <td>₹${l.pricePerDay}</td>
+            <td style="color:var(--text-muted);font-size:.78rem">${escHTML(l.ownerId)}</td>
+            <td>
+              ${l.flagged ? '<span class="badge badge-red">Flagged</span>' : l.available ? '<span class="badge badge-green">Active</span>' : '<span class="badge badge-yellow">Rented</span>'}
+            </td>
+            <td>
+              <button class="btn btn-sm ${l.flagged?'btn-success':'btn-danger'}" onclick="flagListing('${l.id}',this)">
+                ${l.flagged ? 'Unflag' : 'Flag'}
+              </button>
+            </td>
+          </tr>`).join('');
+      } catch(ex) { showToast(ex.message,'error'); }
+    }
+
+    async function loadUsers() {
+      try {
+        const d = await api.get('/api/admin/users');
+        const body = document.getElementById('users-body');
+        body.innerHTML = d.users.map(u => `
+          <tr>
+            <td style="font-weight:600">${escHTML(u.name)}</td>
+            <td style="font-size:.78rem;color:var(--text-muted)">${escHTML(u.email)}</td>
+            <td>${escHTML(u.branch)}</td>
+            <td>${u.semester}</td>
+            <td style="font-size:.78rem;color:var(--text-muted)">${escHTML(u.college)}</td>
+            <td>${u.banned ? '<span class="badge badge-red">Banned</span>' : '<span class="badge badge-green">Active</span>'}</td>
+            <td>
+              <button class="btn btn-sm ${u.banned?'btn-success':'btn-danger'}" onclick="banUser('${u.id}',this)">
+                ${u.banned ? 'Unban' : 'Ban'}
+              </button>
+            </td>
+          </tr>`).join('');
+      } catch(ex) { showToast(ex.message,'error'); }
+    }
+
+    async function flagListing(id, btn) {
+      try {
+        await api.patch(`/api/listings/${id}/flag`, {});
+        showToast('Listing updated','success');
+        loadListings(); loadStats();
+      } catch(ex) { showToast(ex.message,'error'); }
+    }
+
+    async function banUser(id, btn) {
+      try {
+        await api.patch(`/api/admin/users/${id}/ban`, {});
+        showToast('User status updated','success');
+        loadUsers(); loadStats();
+      } catch(ex) { showToast(ex.message,'error'); }
+    }
+
+    function showTab(tab, el) {
+      document.querySelectorAll('.admin-tab').forEach(t=>t.classList.remove('active'));
+      el.classList.add('active');
+      document.getElementById('tab-listings').classList.toggle('hidden', tab!=='listings');
+      document.getElementById('tab-users').classList.toggle('hidden', tab!=='users');
+    }
+
+    loadStats(); loadListings(); loadUsers();
+  </script>
+</body>
+</html>

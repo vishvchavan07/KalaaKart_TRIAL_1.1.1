@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Description AI — KalaaKart</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="/platform/shared/design.css"/>
+  <style>
+    .two-col{display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start}
+    .output-box{background:rgba(132,90,255,.06);border:1px solid rgba(132,90,255,.2);border-radius:var(--r-sm);padding:20px;min-height:160px;font-size:.88rem;line-height:1.75;color:var(--text);white-space:pre-wrap;font-family:'Inter',sans-serif}
+    .cursor-blink{display:inline-block;width:2px;height:1em;background:var(--accent);vertical-align:text-bottom;animation:blink .8s step-end infinite;margin-left:2px}
+    @keyframes blink{50%{opacity:0}}
+    .ai-badge{display:inline-flex;align-items:center;gap:6px;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;padding:4px 12px;border-radius:var(--r-pill);background:rgba(232,121,249,.1);color:#e879f9;border:1px solid rgba(232,121,249,.25);margin-bottom:16px}
+    .copy-btn{transition:all .2s}
+    @media(max-width:760px){.two-col{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <div class="orb orb-1"></div><div class="orb orb-2"></div>
+  <div class="app-layout">
+    <div class="page-content">
+      <div class="page-header">
+        <div class="ai-badge">✍️ AI Layer III — Description Writer</div>
+        <h1 class="page-title">Listing Description AI</h1>
+        <p class="page-sub">Enter your item details and AI writes a compelling rental description for you.</p>
+      </div>
+
+      <div class="two-col">
+        <div class="card">
+          <form id="desc-form" novalidate style="display:flex;flex-direction:column;gap:16px">
+            <div class="field">
+              <label class="label">Item Name *</label>
+              <input class="input" id="item-name" type="text" placeholder="e.g. Arduino Uno Rev3" required/>
+            </div>
+            <div class="field">
+              <label class="label">Key Features (comma-separated)</label>
+              <input class="input" id="features" type="text" placeholder="USB cable included, good condition, original box"/>
+            </div>
+            <div class="field-row">
+              <div class="field">
+                <label class="label">Condition</label>
+                <div class="select-wrap">
+                  <select class="select" id="cond">
+                    <option value="like new">Like new</option>
+                    <option value="good condition">Good condition</option>
+                    <option value="fair condition">Fair condition</option>
+                    <option value="well used but functional">Well used but functional</option>
+                  </select>
+                </div>
+              </div>
+              <div class="field">
+                <label class="label">Category</label>
+                <div class="select-wrap">
+                  <select class="select" id="cat">
+                    <option>Electronics</option><option>Photography</option>
+                    <option>Tools</option><option>Lab Essentials</option>
+                    <option>Stationery</option><option>Networking</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+            <div class="field">
+              <label class="label">Pickup Location</label>
+              <input class="input" id="location" type="text" placeholder="e.g. KJSCE Mumbai, Gate 2"/>
+            </div>
+            <button class="btn btn-primary" type="submit" id="gen-btn">✦ Generate Description</button>
+          </form>
+        </div>
+
+        <div>
+          <div class="card">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+              <div style="font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted)">Generated Description</div>
+              <button class="btn btn-secondary btn-sm copy-btn" id="copy-btn" onclick="copyText()" style="display:none">📋 Copy</button>
+            </div>
+            <div class="output-box" id="output-box">
+              <span style="color:var(--text-dim)">Fill in the details and click Generate…</span>
+            </div>
+          </div>
+          <div class="card" style="margin-top:14px">
+            <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--green);margin-bottom:8px">🔌 Wire-up Point</div>
+            <p style="font-size:.78rem;color:var(--text-muted);line-height:1.6">Replace the template engine in this page with a call to <code style="color:var(--accent-light)">POST /api/ai/describe</code> — which can call Gemini API and stream the response back. The UI is already structured for streaming.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/platform/shared/api.js"></script>
+  <script src="/platform/shared/nav.js"></script>
+  <script>
+    initNav();
+
+    // Template-based description generator (local — no LLM needed)
+    const TEMPLATES = [
+      (n,f,c,cat,loc) => `Looking to rent a ${n}? This ${c} ${cat.toLowerCase()} item is perfect for your semester projects and lab work.\n\n${f.length?'What\'s included: '+f.join(', ')+'.\n\n':''}Whether you need it for a weekend hackathon or a full month of practicals, this is a reliable choice. ${loc?`Easy pickup from ${loc}.`:''}\n\nMessage me to check availability — quick response guaranteed! 📦`,
+      (n,f,c,cat,loc) => `Renting out my ${n} — ${c} and well maintained.\n\nIdeal for ${cat.toLowerCase()} enthusiasts, lab practicals, and project demos.${f.length?'\n\nKit includes: '+f.join(', ')+'.':''}\n\n${loc?`Convenient pickup at ${loc}. `:''}Available on short notice — reach out to discuss dates! 🤝`,
+      (n,f,c,cat,loc) => `📦 ${n} available for rent!\n\nCondition: ${c}\nCategory: ${cat}${f.length?'\nIncludes: '+f.join(', '):''}\n\nGreat for students who need it for a few days without the full purchase cost. ${loc?`Pickup: ${loc}. `:''}Flexible rental durations available. DM to book! ✅`,
+    ];
+
+    let generatedText = '';
+
+    document.getElementById('desc-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const name     = document.getElementById('item-name').value.trim();
+      const features = document.getElementById('features').value.split(',').map(f=>f.trim()).filter(Boolean);
+      const cond     = document.getElementById('cond').value;
+      const cat      = document.getElementById('cat').value;
+      const loc      = document.getElementById('location').value.trim();
+      if (!name) { showToast('Item name is required','error'); return; }
+
+      const template = TEMPLATES[Math.floor(Math.random() * TEMPLATES.length)];
+      generatedText  = template(name, features, cond, cat, loc);
+
+      // Typewriter reveal
+      const box = document.getElementById('output-box');
+      box.innerHTML = '<span class="cursor-blink"></span>';
+      let i = 0;
+      const cursor = box.querySelector('.cursor-blink');
+      const interval = setInterval(() => {
+        if (i >= generatedText.length) {
+          clearInterval(interval);
+          cursor.remove();
+          document.getElementById('copy-btn').style.display='flex';
+          return;
+        }
+        cursor.insertAdjacentText('beforebegin', generatedText[i++]);
+        box.scrollTop = box.scrollHeight;
+      }, 18);
+    });
+
+    function copyText() {
+      navigator.clipboard.writeText(generatedText).then(()=>{
+        const btn = document.getElementById('copy-btn');
+        btn.textContent='✅ Copied!'; setTimeout(()=>btn.textContent='📋 Copy',2000);
+      });
+    }
+  </script>
+</body>
+</html>

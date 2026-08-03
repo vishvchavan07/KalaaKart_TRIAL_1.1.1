@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Post a Listing — KalaaKart</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="/platform/shared/design.css"/>
+  <style>
+    .post-grid{display:grid;grid-template-columns:1fr 340px;gap:24px;align-items:start}
+    .pricing-hint{background:var(--accent-dim);border:1px solid rgba(132,90,255,.25);border-radius:var(--r-sm);padding:16px;font-size:.84rem;margin-top:16px}
+    .pricing-range{font-size:1.3rem;font-weight:800;color:var(--accent-light);margin:6px 0}
+    @media(max-width:860px){.post-grid{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <div class="orb orb-1"></div><div class="orb orb-2"></div>
+  <div class="app-layout">
+    <div class="page-content">
+      <div class="page-header">
+        <h1 class="page-title">Post a Listing</h1>
+        <p class="page-sub">Share an item you'd like to rent out to other students.</p>
+      </div>
+      <div class="post-grid">
+        <div class="card">
+          <form id="post-form" novalidate style="display:flex;flex-direction:column;gap:18px">
+            <div class="field">
+              <label class="label">Item Title *</label>
+              <input class="input" id="title" type="text" placeholder="e.g. Arduino Uno Rev3" required/>
+            </div>
+            <div class="field-row">
+              <div class="field">
+                <label class="label">Category *</label>
+                <div class="select-wrap">
+                  <select class="select" id="category" required onchange="fetchPricing()">
+                    <option value="">Choose category…</option>
+                    <option>Electronics</option><option>Photography</option><option>Tools</option>
+                    <option>Stationery</option><option>Lab Essentials</option><option>Networking</option>
+                    <option>Accessories</option><option>Civil Tools</option>
+                  </select>
+                </div>
+              </div>
+              <div class="field">
+                <label class="label">Condition *</label>
+                <div class="select-wrap">
+                  <select class="select" id="condition" onchange="fetchPricing()">
+                    <option value="Good">Good</option>
+                    <option value="Fair">Fair</option>
+                    <option value="Poor">Poor</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+            <div class="field">
+              <label class="label">Description</label>
+              <textarea class="textarea" id="description" placeholder="Describe the item — what it includes, any wear…"></textarea>
+            </div>
+            <div class="field-row">
+              <div class="field">
+                <label class="label">Price per Day (₹) *</label>
+                <input class="input" id="pricePerDay" type="number" min="1" placeholder="e.g. 50" required/>
+              </div>
+              <div class="field">
+                <label class="label">Pickup College *</label>
+                <input class="input" id="college" type="text" placeholder="e.g. KJSCE Mumbai" required/>
+              </div>
+            </div>
+            <div class="field">
+              <label class="label">Tags (comma-separated)</label>
+              <input class="input" id="tags" type="text" placeholder="arduino, iot, microcontroller"/>
+            </div>
+            <div class="field-err" id="post-err"></div>
+            <button class="btn btn-primary" id="post-btn" type="submit">Post Listing ✦</button>
+          </form>
+        </div>
+
+        <!-- Smart pricing sidebar -->
+        <div>
+          <div class="card">
+            <div style="font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);margin-bottom:12px">💰 Smart Pricing</div>
+            <div id="pricing-box">
+              <p style="font-size:.83rem;color:var(--text-muted)">Select a category and condition to see a suggested price range based on similar listings.</p>
+            </div>
+          </div>
+          <div class="card" style="margin-top:16px">
+            <div style="font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);margin-bottom:10px">💡 Tips</div>
+            <ul style="font-size:.8rem;color:var(--text-muted);padding-left:16px;line-height:1.8">
+              <li>Include accessories in description</li>
+              <li>Set competitive prices to get requests faster</li>
+              <li>Mention your campus for easy pickup</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/platform/shared/api.js"></script>
+  <script src="/platform/shared/nav.js"></script>
+  <script>
+    requireAuth();
+    initNav();
+
+    async function fetchPricing() {
+      const cat  = document.getElementById('category').value;
+      const cond = document.getElementById('condition').value;
+      const box  = document.getElementById('pricing-box');
+      if (!cat) return;
+      box.innerHTML = '<p style="font-size:.82rem;color:var(--text-muted)">Loading…</p>';
+      try {
+        const d = await api.get(`/api/pricing/suggest?category=${encodeURIComponent(cat)}&condition=${cond}`);
+        if (d.count === 0) {
+          box.innerHTML = `<p style="font-size:.82rem;color:var(--text-muted)">No data for this category yet — you set the benchmark!</p>`;
+          return;
+        }
+        box.innerHTML = `
+          <div style="font-size:.8rem;color:var(--text-muted)">${cat} · ${cond} condition</div>
+          <div class="pricing-range">₹${d.suggested}/day</div>
+          <div style="font-size:.75rem;color:var(--text-dim)">Range across ${d.count} listing${d.count>1?'s':''}: ₹${d.min}–₹${d.max}</div>
+          <button class="btn btn-secondary btn-sm" style="margin-top:10px;font-size:.75rem" onclick="document.getElementById('pricePerDay').value=${d.suggested}">Use ₹${d.suggested}</button>`;
+      } catch { box.innerHTML='<p style="font-size:.82rem;color:var(--red)">Could not load pricing data.</p>'; }
+    }
+
+    document.getElementById('post-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('post-btn');
+      const err = document.getElementById('post-err');
+      btn.disabled=true; btn.textContent='Posting…'; err.textContent='';
+      try {
+        await api.post('/api/listings', {
+          title      : document.getElementById('title').value,
+          category   : document.getElementById('category').value,
+          description: document.getElementById('description').value,
+          pricePerDay: document.getElementById('pricePerDay').value,
+          college    : document.getElementById('college').value,
+          tags       : document.getElementById('tags').value,
+        });
+        showToast('Listing posted! 🎉', 'success');
+        setTimeout(() => window.location.href='/platform/listings/index.html', 1200);
+      } catch(ex) { err.textContent=ex.message; btn.disabled=false; btn.textContent='Post Listing ✦'; }
+    });
+  </script>
+</body>
+</html>

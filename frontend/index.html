@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KalaaKart — Smart Rental Recommendations</title>
+  <meta name="description" content="Get personalised study-equipment rental recommendations based on your branch, semester, and time of year — powered by KalaaKart's rule-based engine." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300;0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800;0,14..32,900;1,14..32,400&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- Top progress bar -->
+  <div id="progress-bar" aria-hidden="true"></div>
+
+  <!-- Particle canvas -->
+  <canvas id="particle-canvas" aria-hidden="true"></canvas>
+
+  <!-- Ambient gradient orbs -->
+  <div class="orb orb-1" aria-hidden="true"></div>
+  <div class="orb orb-2" aria-hidden="true"></div>
+  <div class="orb orb-3" aria-hidden="true"></div>
+
+  <div class="app">
+
+    <!-- ── Header ─────────────────────────────────── -->
+    <header class="header">
+      <div class="logo-wrap">
+        <span class="logo-ring" aria-hidden="true"></span>
+        <span class="logo-text">KalaaKart</span>
+        <span class="logo-phase">Phase 2 · AI Layer I</span>
+      </div>
+
+      <div class="hero">
+        <p class="hero-eyebrow">✦ Smart Rentals Engine</p>
+        <h1 class="hero-title">
+          <span class="typewriter" id="typewriter-target"></span><span class="cursor" aria-hidden="true">|</span>
+        </h1>
+        <p class="hero-sub">
+          Rule-based. Instant. Zero AI cost.<br/>
+          We match your semester to exactly what you need to borrow.
+        </p>
+      </div>
+    </header>
+
+    <!-- ── Main ──────────────────────────────────── -->
+    <main>
+
+      <!-- Form card -->
+      <section class="glass-card form-card" aria-labelledby="form-heading">
+        <div class="card-glow" aria-hidden="true"></div>
+
+        <h2 id="form-heading" class="form-title">Find what to rent this semester</h2>
+        <p class="form-sub">Tell us about yourself — we'll handle the rest.</p>
+
+        <form id="rec-form" novalidate autocomplete="off">
+
+          <!-- Branch -->
+          <div class="field" id="field-branch">
+            <label class="field-label" for="branch-select">
+              <span class="label-icon" aria-hidden="true">🏛️</span> Branch
+            </label>
+            <div class="select-wrap">
+              <select id="branch-select" name="branch" required>
+                <option value="" disabled selected>Choose your branch…</option>
+              </select>
+              <svg class="select-caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+            <p class="field-err" id="err-branch" role="alert" aria-live="polite"></p>
+          </div>
+
+          <!-- Semester + Date row -->
+          <div class="field-row">
+            <div class="field" id="field-semester">
+              <label class="field-label" for="semester-input">
+                <span class="label-icon" aria-hidden="true">📅</span> Semester
+              </label>
+              <input id="semester-input" type="number" name="semester" min="1" max="8" placeholder="1 – 8" required />
+              <p class="field-err" id="err-semester" role="alert" aria-live="polite"></p>
+            </div>
+
+            <div class="field" id="field-date">
+              <label class="field-label" for="date-input">
+                <span class="label-icon" aria-hidden="true">🗓️</span> Semester Start Date
+              </label>
+              <input id="date-input" type="date" name="semesterStartDate" required />
+              <p class="field-err" id="err-date" role="alert" aria-live="polite"></p>
+            </div>
+          </div>
+
+          <!-- Submit -->
+          <button id="submit-btn" type="submit">
+            <span class="btn-bg" aria-hidden="true"></span>
+            <span class="btn-shine" aria-hidden="true"></span>
+            <span class="btn-content">
+              <span class="btn-icon" id="btn-icon" aria-hidden="true">✦</span>
+              <span class="btn-text" id="btn-text">Get Recommendations</span>
+            </span>
+            <span class="btn-ripple" id="btn-ripple" aria-hidden="true"></span>
+          </button>
+
+        </form>
+      </section>
+
+      <!-- Results section -->
+      <section id="results-section" class="results-section hidden" aria-live="polite" aria-labelledby="results-heading">
+
+        <!-- Summary bar -->
+        <div class="results-meta" id="results-meta">
+          <div class="results-meta-left">
+            <h2 id="results-heading" class="results-title">Your Recommendations</h2>
+            <p class="results-profile" id="results-profile"></p>
+          </div>
+          <div class="results-meta-right">
+            <div class="count-badge" id="count-badge">
+              <span class="count-number" id="count-number">0</span>
+              <span class="count-label">suggestions</span>
+            </div>
+            <button class="copy-btn" id="copy-btn" title="Copy plain-text summary">
+              <span id="copy-icon">📋</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Cards list -->
+        <div id="rec-list" class="rec-list"></div>
+
+      </section>
+
+      <!-- Error panel -->
+      <div id="error-panel" class="error-panel hidden" role="alert">
+        <span class="error-panel-icon" aria-hidden="true">⚠</span>
+        <div>
+          <p class="error-panel-title">Something went wrong</p>
+          <p id="error-panel-msg" class="error-panel-msg"></p>
+        </div>
+      </div>
+
+    </main>
+
+    <!-- ── Footer ─────────────────────────────────── -->
+    <footer class="footer">
+      <p>KalaaKart · Phase 2 · Rule-based engine · No LLM · No token cost</p>
+    </footer>
+
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

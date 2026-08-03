@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Profiles — KalaaKart</title>
+  <meta name="description" content="Browse student Creator, Mentor, Buyer and Seller profiles on KalaaKart."/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="/platform/shared/design.css"/>
+</head>
+<body>
+  <div class="orb orb-1"></div><div class="orb orb-2"></div>
+  <div class="app-layout">
+    <div class="page-content">
+      <div class="page-header">
+        <h1 class="page-title">Student Profiles</h1>
+        <p class="page-sub">Discover Creators, Mentors, Buyers &amp; Sellers from your campus and beyond.</p>
+      </div>
+
+      <!-- Controls -->
+      <div class="filters-wrap glass-2" style="display:flex;flex-wrap:wrap;gap:16px;align-items:flex-end;margin-bottom:24px">
+        <!-- Role filter chips -->
+        <div>
+          <div class="label" style="margin-bottom:8px">Filter by Role</div>
+          <div class="chip-bar" id="role-filter">
+            <button class="chip-filter active" data-role="All" onclick="setRole(this)">All</button>
+            <button class="chip-filter" data-role="Creator" onclick="setRole(this)">✦ Creator</button>
+            <button class="chip-filter" data-role="Mentor" onclick="setRole(this)">🎓 Mentor</button>
+            <button class="chip-filter" data-role="Seller" onclick="setRole(this)">🏷️ Seller</button>
+            <button class="chip-filter" data-role="Buyer" onclick="setRole(this)">🛒 Buyer</button>
+            <button class="chip-filter" data-role="Collaborate" onclick="setRole(this)">🤝 Collaborate</button>
+          </div>
+        </div>
+        <!-- Keyword search -->
+        <div class="filter-field" style="display:flex;flex-direction:column;gap:5px;min-width:200px">
+          <label class="label">Search</label>
+          <input class="input" id="q-input" type="text" placeholder="Name, skill, title…" style="padding:9px 14px" onkeydown="if(event.key==='Enter')loadProfiles()"/>
+        </div>
+        <div style="display:flex;align-items:flex-end;padding-bottom:2px">
+          <button class="btn btn-primary btn-sm" onclick="loadProfiles()">Search</button>
+        </div>
+        <!-- Create profile CTA -->
+        <div style="margin-left:auto;display:flex;align-items:flex-end">
+          <a href="/platform/profiles/create.html" class="btn btn-secondary">✦ Create My Profile</a>
+        </div>
+      </div>
+
+      <!-- Results count -->
+      <div id="results-meta" style="font-size:.8rem;color:var(--text-muted);margin-bottom:14px"></div>
+
+      <!-- Profile Grid -->
+      <div class="profile-grid" id="profile-grid">
+        <div class="empty"><div class="empty-icon">⏳</div><p>Loading profiles…</p></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/platform/shared/api.js"></script>
+  <script src="/platform/shared/nav.js"></script>
+  <script>
+    initNav();
+
+    const ROLE_COLOR = {Creator:'badge-purple',Mentor:'badge-cyan',Buyer:'badge-orange',Seller:'badge-green',Collaborate:'badge-yellow'};
+    let activeRole = 'All';
+
+    function setRole(btn) {
+      document.querySelectorAll('#role-filter .chip-filter').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      activeRole = btn.dataset.role;
+      loadProfiles();
+    }
+
+    async function loadProfiles() {
+      const grid = document.getElementById('profile-grid');
+      grid.classList.add('grid-updating');
+      await new Promise(r => setTimeout(r, 150));
+      
+      const q = document.getElementById('q-input').value.trim();
+      const params = new URLSearchParams();
+      if (activeRole !== 'All') params.set('role', activeRole);
+      if (q) params.set('q', q);
+      try {
+        const d = await api.get('/api/profiles?' + params);
+        const profiles = d.profiles;
+        document.getElementById('results-meta').textContent = `${profiles.length} profile${profiles.length !== 1 ? 's' : ''}${activeRole !== 'All' ? ' · ' + activeRole : ''} found`;
+        if (!profiles.length) {
+          grid.innerHTML = '<div class="empty"><div class="empty-icon">📭</div><div class="empty-title">No profiles found</div><p class="empty-msg">Try a different role or search term.</p></div>';
+          return;
+        }
+        grid.innerHTML = profiles.map((p, i) => {
+          const initials = p.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+          const roleBadges = (p.role||[]).filter(r => r !== 'admin').slice(0,3)
+            .map(r => `<span class="badge ${ROLE_COLOR[r]||'badge-purple'}" style="font-size:.6rem;padding:2px 7px">${r}</span>`).join('');
+          const skills = (p.skills||[]).slice(0,4).map(s => `<span class="chip" style="font-size:.68rem">${escHTML(s)}</span>`).join('');
+          const college = p.college ? `<span style="font-size:.72rem;color:var(--text-dim)">📍 ${escHTML(p.college)}</span>` : '';
+          const priceInfo = p.priceMin ? (p.priceMin === 0 ? '<span style="color:var(--green);font-size:.78rem;font-weight:600">Free sessions</span>' : `<span style="font-size:.78rem;color:var(--text-muted)">From ₹${p.priceMin}/session${p.negotiable ? ' · Negotiable' : ''}</span>`) : '';
+          return `
+            <div class="profile-card fade-in" style="animation-delay:${i*40}ms">
+              <div style="display:flex;align-items:center;gap:12px">
+                <div class="profile-avatar">${p.photo ? `<img src="${escHTML(p.photo)}" alt="${escHTML(p.name)}"/>` : initials}</div>
+                <div style="flex:1;min-width:0">
+                  <div class="profile-name">${escHTML(p.name)}</div>
+                  <div class="profile-title">${escHTML(p.creativeTitle||p.branch||'')}</div>
+                </div>
+              </div>
+              <div class="profile-role-badges">${roleBadges}</div>
+              ${p.bio ? `<p class="profile-bio">${escHTML(p.bio)}</p>` : ''}
+              ${skills ? `<div class="profile-skills">${skills}</div>` : ''}
+              <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;margin-top:auto">
+                ${college}
+                ${priceInfo}
+              </div>
+            </div>`;
+        }).join('');
+      } catch(ex) {
+        grid.innerHTML = `<div class="empty"><div class="empty-icon">⚠️</div><p>${ex.message}</p></div>`;
+      }
+      
+      requestAnimationFrame(() => {
+        grid.classList.remove('grid-updating');
+      });
+    }
+
+    loadProfiles();
+  </script>
+</body>
+</html>

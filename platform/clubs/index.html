@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Club Equipment — KalaaKart</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="/platform/shared/design.css"/>
+  <style>
+    .club-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:20px;margin-bottom:32px}
+    .club-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:24px;transition:all var(--t)}
+    .club-card:hover{border-color:rgba(132,90,255,.25);box-shadow:0 8px 28px rgba(0,0,0,.35)}
+    .club-name{font-size:1rem;font-weight:700;margin:10px 0 4px}
+    .club-desc{font-size:.81rem;color:var(--text-muted);margin-bottom:14px}
+    .calendar{margin-top:14px}
+    .cal-title{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);margin-bottom:8px}
+    .cal-row{display:flex;gap:6px;flex-wrap:wrap}
+    .cal-slot{
+      padding:6px 10px;border-radius:var(--r-sm);font-size:.73rem;font-weight:600;cursor:pointer;border:1px solid;
+      transition:all .15s;white-space:nowrap;
+    }
+    .slot-free{background:var(--green-bg);border-color:var(--green-border);color:var(--green)}
+    .slot-free:hover{background:var(--green);color:#000}
+    .slot-booked{background:rgba(255,255,255,.04);border-color:var(--border);color:var(--text-dim);cursor:not-allowed}
+    .slot-mine{background:var(--accent-dim);border-color:rgba(132,90,255,.35);color:var(--accent-light);cursor:not-allowed}
+
+    /* Booking modal */
+    #book-modal{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:200;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+  </style>
+</head>
+<body>
+  <div class="orb orb-1"></div><div class="orb orb-2"></div>
+  <div class="app-layout">
+    <div class="page-content">
+      <div class="page-header">
+        <h1 class="page-title">🏛️ Club Equipment</h1>
+        <p class="page-sub">Book camera kits, robotics arms, and club-owned gear with a calendar slot system.</p>
+      </div>
+
+      <div class="club-grid" id="club-grid">
+        <div class="empty"><div class="empty-icon">⏳</div><p>Loading club items…</p></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Booking modal -->
+  <div id="book-modal" class="hidden">
+    <div class="card" style="max-width:380px;width:90%;position:relative">
+      <button onclick="closeBookModal()" style="position:absolute;top:14px;right:16px;background:none;border:none;color:var(--text-muted);font-size:1.2rem;cursor:pointer">✕</button>
+      <h2 style="font-size:1rem;font-weight:700;margin-bottom:6px" id="modal-item-name">Book Item</h2>
+      <div style="font-size:.82rem;color:var(--text-muted);margin-bottom:18px" id="modal-date"></div>
+      <p style="font-size:.84rem;margin-bottom:20px;color:var(--text-muted)">This will create a 1-day rental request for this club item.</p>
+      <div class="field-err" id="book-err"></div>
+      <div style="display:flex;gap:10px;margin-top:10px">
+        <button class="btn btn-secondary btn-sm" onclick="closeBookModal()">Cancel</button>
+        <button class="btn btn-primary" id="book-confirm" onclick="confirmBook()">Confirm Booking</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/platform/shared/api.js"></script>
+  <script src="/platform/shared/nav.js"></script>
+  <script>
+    initNav();
+
+    let pendingBooking = null;
+    const user = getUser();
+
+    // Generate 7 days from today
+    function getWeekDays() {
+      return Array.from({length:7}, (_,i) => {
+        const d = new Date(); d.setDate(d.getDate()+i);
+        return d.toISOString().split('T')[0];
+      });
+    }
+
+    function fmt(dateStr) {
+      return new Date(dateStr).toLocaleDateString('en-IN',{weekday:'short',month:'short',day:'numeric'});
+    }
+
+    async function load() {
+      const grid = document.getElementById('club-grid');
+      try {
+        const [ld, rd] = await Promise.all([
+          api.get('/api/listings?available=true'),
+          api.get('/api/rentals'),
+        ]);
+        const clubItems = ld.listings.filter(l => l.type === 'club' || l.id.startsWith('c'));
+        if (!clubItems.length) {
+          grid.innerHTML='<div class="empty"><div class="empty-icon">📭</div><div class="empty-title">No club items</div><p class="empty-msg">Club equipment is added by verified clubs.</p></div>';
+          return;
+        }
+        const days = getWeekDays();
+        grid.innerHTML = clubItems.map(item => {
+          // Find which days have bookings for this item
+          const bookedDays = new Set(
+            (rd.rentals||[])
+              .filter(r=>r.listingId===item.id && ['pending','active'].includes(r.status))
+              .map(r=>r.startDate)
+          );
+          const myBookings = new Set(
+            (rd.rentals||[])
+              .filter(r=>r.listingId===item.id && r.renterId===user?.id)
+              .map(r=>r.startDate)
+          );
+
+          const slots = days.map(d => {
+            const mine   = myBookings.has(d);
+            const booked = bookedDays.has(d);
+            if (mine)   return `<div class="cal-slot slot-mine" title="Your booking">${fmt(d)} ✓</div>`;
+            if (booked) return `<div class="cal-slot slot-booked" title="Already booked">${fmt(d)}</div>`;
+            return `<div class="cal-slot slot-free" onclick="openBookModal('${item.id}','${item.title}','${item.ownerId}','${d}')">${fmt(d)}</div>`;
+          }).join('');
+
+          return `
+            <div class="club-card">
+              <span class="badge badge-cyan">🏛️ Club</span>
+              <div class="club-name">${escHTML(item.title)}</div>
+              <div class="club-desc">${escHTML(item.description)}</div>
+              <div class="calendar">
+                <div class="cal-title">📅 Next 7 Days — click to book</div>
+                <div class="cal-row">${slots}</div>
+              </div>
+            </div>`;
+        }).join('');
+      } catch(ex) {
+        grid.innerHTML=`<div class="empty"><div class="empty-icon">⚠️</div><p>${ex.message}</p></div>`;
+      }
+    }
+
+    function openBookModal(listingId, title, ownerId, date) {
+      if (!user) { window.location.href='/platform/auth/login.html'; return; }
+      pendingBooking = {listingId, ownerId, date};
+      document.getElementById('modal-item-name').textContent = title;
+      document.getElementById('modal-date').textContent      = `📅 ${fmt(date)}`;
+      document.getElementById('book-err').textContent = '';
+      document.getElementById('book-modal').classList.remove('hidden');
+    }
+
+    function closeBookModal() {
+      document.getElementById('book-modal').classList.add('hidden');
+      pendingBooking = null;
+    }
+
+    async function confirmBook() {
+      if (!pendingBooking) return;
+      const btn = document.getElementById('book-confirm');
+      btn.disabled=true; btn.textContent='Booking…';
+      try {
+        await api.post('/api/rentals', {
+          listingId: pendingBooking.listingId,
+          ownerId  : pendingBooking.ownerId,
+          startDate: pendingBooking.date,
+          endDate  : pendingBooking.date,
+        });
+        closeBookModal();
+        showToast('Club item booked! Check My Rentals.','success');
+        load();
+      } catch(ex) {
+        document.getElementById('book-err').textContent = ex.message;
+      }
+      btn.disabled=false; btn.textContent='Confirm Booking';
+    }
+
+    load();
+  </script>
+</body>
+</html>

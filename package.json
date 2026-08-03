@@ -1,0 +1,14 @@
+{
+  "name": "kalaakart-rentals-mvp",
+  "version": "1.0.0",
+  "description": "KalaaKart Smart Rental Recommendations — full-stack MVP runner",
+  "scripts": {
+    "start": "concurrently --names \"API,UI\" --prefix-colors \"magenta,cyan\" \"npm run backend\" \"npm run frontend\"",
+    "backend": "node backend/server.js",
+    "frontend": "serve . -l 8080"
+  },
+  "dependencies": {
+    "concurrently": "^8.2.2",
+    "serve": "^14.2.3"
+  }
+}
